@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-body text-gray-800;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-title font-semibold;
+  }
+
+  h1 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl md:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl md:text-2xl;
+  }
+
+  a {
+    @apply text-primary-600 hover:text-primary-800 transition-colors;
+  }
+
+  button:focus, a:focus {
+    @apply outline-none ring-2 ring-primary-500 ring-opacity-50;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-400;
+  }
+
+  .btn-outline {
+    @apply btn border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-200;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-md overflow-hidden transition-shadow duration-300 hover:shadow-lg;
+  }
+
+  .container-custom {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+.property-card-transition {
+  @apply transition-all duration-300 ease-in-out transform hover:-translate-y-1;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

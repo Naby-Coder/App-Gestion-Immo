@@ -1,0 +1,263 @@
+import { useState } from 'react';
+import { 
+  Search, Filter, MessageSquare, Calendar, User, Check, 
+  Clock, X, AlertCircle, ChevronLeft, ChevronRight
+} from 'lucide-react';
+import { contactRequests } from '../../data/requests';
+import { properties } from '../../data/properties';
+import { formatDate } from '../../utils/formatters';
+
+const AdminRequests = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  
+  // Filtrer les demandes
+  const filteredRequests = contactRequests.filter(request => {
+    const fullName = `${request.firstName} ${request.lastName}`.toLowerCase();
+    const matchesSearch = (
+      fullName.includes(searchTerm.toLowerCase()) ||
+      request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (request.propertyId && properties.find(p => p.id === request.propertyId)?.title.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+    
+    const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  });
+  
+  // Pagination
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentRequests = filteredRequests.slice(startIndex, startIndex + itemsPerPage);
+  
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+  
+  const getPropertyTitle = (propertyId?: string) => {
+    if (!propertyId) return "Demande générale";
+    const property = properties.find(p => p.id === propertyId);
+    return property ? property.title : "Bien non trouvé";
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Nouveau':
+        return <AlertCircle size={16} className="text-warning-500" />;
+      case 'En cours':
+        return <Clock size={16} className="text-primary-500" />;
+      case 'Traité':
+        return <Check size={16} className="text-success-500" />;
+      default:
+        return null;
+    }
+  };
+  
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case 'Nouveau':
+        return 'bg-warning-100 text-warning-700';
+      case 'En cours':
+        return 'bg-primary-100 text-primary-700';
+      case 'Traité':
+        return 'bg-success-100 text-success-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+  
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-semibold text-gray-800">Gestion des demandes</h1>
+      </div>
+      
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Rechercher une demande..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="input pl-10"
+            />
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Filter className="h-5 w-5 text-gray-400" />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="input max-w-xs"
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="Nouveau">Nouveaux</option>
+              <option value="En cours">En cours</option>
+              <option value="Traité">Traités</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      {/* Requests Table */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Bien concerné
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Message
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Statut
+                </th>
+                <th className="px-6 py-3 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {currentRequests.map((request) => (
+                <tr key={request.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 flex-shrink-0 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center">
+                        <User size={18} />
+                      </div>
+                      <div className="ml-4">
+                        <div className="text-sm font-medium text-gray-900">{request.firstName} {request.lastName}</div>
+                        <div className="text-sm text-gray-500">{request.email}</div>
+                        <div className="text-sm text-gray-500">{request.phone}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900 line-clamp-2">
+                      {getPropertyTitle(request.propertyId)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-500 line-clamp-3">
+                      {request.message}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Calendar size={16} className="mr-2" />
+                      <span>{formatDate(request.createdAt)}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(request.status)}`}>
+                      {getStatusIcon(request.status)}
+                      <span className="ml-1">{request.status}</span>
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                    <div className="flex justify-center space-x-2">
+                      <button className="p-1 text-primary-600 hover:text-primary-800" title="Répondre">
+                        <MessageSquare size={18} />
+                      </button>
+                      <button className="p-1 text-success-600 hover:text-success-800" title="Marquer comme traité">
+                        <Check size={18} />
+                      </button>
+                      <button className="p-1 text-red-600 hover:text-red-800" title="Ignorer">
+                        <X size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              
+              {currentRequests.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    Aucune demande ne correspond à votre recherche.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        {filteredRequests.length > 0 && (
+          <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
+            <div className="text-sm text-gray-500">
+              Affichage de <span className="font-medium">{startIndex + 1}</span> à{' '}
+              <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredRequests.length)}</span> sur{' '}
+              <span className="font-medium">{filteredRequests.length}</span> demandes
+            </div>
+            
+            <div className="flex space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`p-2 border rounded-md ${
+                  currentPage === 1
+                    ? 'text-gray-300 border-gray-200 cursor-not-allowed'
+                    : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              
+              {Array.from({ length: Math.min(totalPages, 5) }).map((_, index) => {
+                const pageNumber = index + 1;
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => goToPage(pageNumber)}
+                    className={`w-8 h-8 text-sm border rounded-md ${
+                      currentPage === pageNumber
+                        ? 'bg-primary-600 text-white border-primary-600'
+                        : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              })}
+              
+              {totalPages > 5 && (
+                <span className="flex items-center justify-center w-8 h-8 text-sm text-gray-500">...</span>
+              )}
+              
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`p-2 border rounded-md ${
+                  currentPage === totalPages
+                    ? 'text-gray-300 border-gray-200 cursor-not-allowed'
+                    : 'text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default AdminRequests;
