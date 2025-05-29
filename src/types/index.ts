@@ -71,4 +71,16 @@ export interface User {
   email: string;
   role: 'admin' | 'agent' | 'client';
   avatar?: string;
+  password: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RegisterFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role: 'client' | 'agent';
 }
