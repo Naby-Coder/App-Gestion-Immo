@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, Building, Users, Phone, BookOpen, UserCircle } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Home, Building, Users, Phone, BookOpen, UserCircle, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Simuler l'état de connexion
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -12,6 +14,11 @@ const Navbar = () => {
 
   const closeMenu = () => {
     setIsMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    navigate('/login');
   };
 
   const isActive = (path: string) => {
@@ -52,12 +59,24 @@ const Navbar = () => {
 
           {/* Authentication Buttons (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link to="/login" className="btn-outline">
-              Connexion
-            </Link>
-            <Link to="/inscription" className="btn-primary">
-              Inscription
-            </Link>
+            {isLoggedIn ? (
+              <button 
+                onClick={handleLogout}
+                className="flex items-center space-x-2 text-gray-700 hover:text-primary-600"
+              >
+                <LogOut size={18} />
+                <span>Déconnexion</span>
+              </button>
+            ) : (
+              <>
+                <Link to="/login" className="btn-outline">
+                  Connexion
+                </Link>
+                <Link to="/inscription" className="btn-primary">
+                  Inscription
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -86,12 +105,24 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex flex-col space-y-3 pt-4 border-t border-gray-200">
-                <Link to="/login" className="btn-outline text-center" onClick={closeMenu}>
-                  Connexion
-                </Link>
-                <Link to="/inscription" className="btn-primary text-center" onClick={closeMenu}>
-                  Inscription
-                </Link>
+                {isLoggedIn ? (
+                  <button 
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 py-2"
+                  >
+                    <LogOut size={18} />
+                    <span>Déconnexion</span>
+                  </button>
+                ) : (
+                  <>
+                    <Link to="/login" className="btn-outline text-center" onClick={closeMenu}>
+                      Connexion
+                    </Link>
+                    <Link to="/inscription" className="btn-primary text-center" onClick={closeMenu}>
+                      Inscription
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
