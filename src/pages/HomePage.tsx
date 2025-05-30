@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import PropertySearch from '../components/common/PropertySearch';
 import PropertyCard from '../components/common/PropertyCard';
 import AgentCard from '../components/common/AgentCard';
+import TestimonialSlider from '../components/common/TestimonialSlider';
 import { properties } from '../data/properties';
 import { agents } from '../data/agents';
 
@@ -17,8 +18,14 @@ const HomePage = () => {
   const handleSearch = (params: any) => {
     console.log('Search params:', params);
     setSearchParams(params);
-    // Rediriger vers la page des biens avec les paramètres de recherche
   };
+
+  const cities = [
+    { name: 'Dakar', image: 'https://images.pexels.com/photos/3876958/pexels-photo-3876958.jpeg', count: 45 },
+    { name: 'Thiès', image: 'https://images.pexels.com/photos/2901209/pexels-photo-2901209.jpeg', count: 23 },
+    { name: 'Saint-Louis', image: 'https://images.pexels.com/photos/4371669/pexels-photo-4371669.jpeg', count: 18 },
+    { name: 'Touba', image: 'https://images.pexels.com/photos/5563472/pexels-photo-5563472.jpeg', count: 15 }
+  ];
   
   return (
     <div>
@@ -68,19 +75,20 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-       {/* Cities Section */}
+
+      {/* Cities Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Nos Emplacements Prisés</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Découvrez nos biens dans les meilleures zones immobilières de France
+              Découvrez nos biens dans les meilleures zones immobilières du Sénégal
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {['Paris', 'Lyon', 'Nice', 'Bordeaux'].map((city) => (
-              <Link to={`/proprietes?city=${city}`} key={city}>
+            {cities.map((city) => (
+              <Link to={`/biens?city=${city.name}`} key={city.name}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   whileInView={{ opacity: 1, scale: 1 }}
@@ -90,32 +98,16 @@ const HomePage = () => {
                   className="relative rounded-xl overflow-hidden h-60 group"
                 >
                   <img
-                    src={`https://images.pexels.com/photos/${
-                      city === 'Paris'
-                        ? '338515'
-                        : city === 'Lyon'
-                        ? '2363'
-                        : city === 'Nice'
-                        ? '7119'
-                        : '2689301'
-                    }/pexels-photo-${
-                      city === 'Paris'
-                        ? '338515'
-                        : city === 'Lyon'
-                        ? '2363'
-                        : city === 'Nice'
-                        ? '7119'
-                        : '2689301'
-                    }.jpeg?auto=compress&cs=tinysrgb&w=800&h=500&dpr=1`}
-                    alt={city}
+                    src={city.image}
+                    alt={city.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 text-white">
-                    <h3 className="text-xl font-semibold mb-1">{city}</h3>
+                    <h3 className="text-xl font-semibold mb-1">{city.name}</h3>
                     <div className="flex items-center">
                       <MapPin size={16} className="mr-1" />
-                      <span className="text-sm">12 propriétés</span>
+                      <span className="text-sm">{city.count} propriétés</span>
                     </div>
                   </div>
                 </motion.div>
@@ -124,6 +116,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      
       {/* Services */}
       <section className="py-16 bg-white">
         <div className="container-custom">
@@ -201,6 +194,21 @@ const HomePage = () => {
               En savoir plus sur notre équipe
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-semibold text-gray-800 mb-4">Ce que disent nos clients</h2>
+            <p className="text-gray-600 max-w-3xl mx-auto">
+              Découvrez les témoignages de nos clients satisfaits qui nous ont fait confiance 
+              pour leurs projets immobiliers.
+            </p>
+          </div>
+          
+          <TestimonialSlider />
         </div>
       </section>
       
