@@ -67,7 +67,62 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      
+       {/* Cities Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Nos Emplacements Prisés</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Découvrez nos biens dans les meilleures zones immobilières de France
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {['Paris', 'Lyon', 'Nice', 'Bordeaux'].map((city) => (
+              <Link to={`/proprietes?city=${city}`} key={city}>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative rounded-xl overflow-hidden h-60 group"
+                >
+                  <img
+                    src={`https://images.pexels.com/photos/${
+                      city === 'Paris'
+                        ? '338515'
+                        : city === 'Lyon'
+                        ? '2363'
+                        : city === 'Nice'
+                        ? '7119'
+                        : '2689301'
+                    }/pexels-photo-${
+                      city === 'Paris'
+                        ? '338515'
+                        : city === 'Lyon'
+                        ? '2363'
+                        : city === 'Nice'
+                        ? '7119'
+                        : '2689301'
+                    }.jpeg?auto=compress&cs=tinysrgb&w=800&h=500&dpr=1`}
+                    alt={city}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 p-6 text-white">
+                    <h3 className="text-xl font-semibold mb-1">{city}</h3>
+                    <div className="flex items-center">
+                      <MapPin size={16} className="mr-1" />
+                      <span className="text-sm">12 propriétés</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
       {/* Services */}
       <section className="py-16 bg-white">
         <div className="container-custom">
@@ -148,75 +203,21 @@ const HomePage = () => {
         </div>
       </section>
       
+     
+
       {/* Testimonials */}
-      <section className="py-16 bg-white">
-        <div className="container-custom">
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-semibold text-gray-800 mb-4">Ce que disent nos clients</h2>
-            <p className="text-gray-600 max-w-3xl mx-auto">
-              Découvrez les témoignages de nos clients satisfaits qui nous ont fait confiance 
-              pour leurs projets immobiliers.
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Ce Que Disent Nos Clients</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Découvrez les témoignages de nos clients satisfaits
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <div className="flex items-center space-x-1 text-secondary-500 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-600 italic mb-4">
-                "ImmoExpert a été d'une aide précieuse dans l'achat de notre première maison. 
-                L'équipe a su nous guider et nous conseiller tout au long du processus. Un grand merci !"
-              </p>
-              <div className="font-medium">
-                <p className="text-gray-800">Marie et Pierre D.</p>
-                <p className="text-gray-500 text-sm">Acheteurs à Lyon</p>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <div className="flex items-center space-x-1 text-secondary-500 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-600 italic mb-4">
-                "Professionnalisme et réactivité ! J'ai vendu mon appartement en moins de 2 mois 
-                grâce à l'expertise de Sophie. Je recommande vivement cette agence."
-              </p>
-              <div className="font-medium">
-                <p className="text-gray-800">Jean-Marc L.</p>
-                <p className="text-gray-500 text-sm">Vendeur à Villeurbanne</p>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-6 rounded-lg shadow-md">
-              <div className="flex items-center space-x-1 text-secondary-500 mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-gray-600 italic mb-4">
-                "La gestion locative proposée par ImmoExpert est impeccable. Je n'ai plus à me soucier 
-                de mes biens en location et je reçois des rapports détaillés chaque mois."
-              </p>
-              <div className="font-medium">
-                <p className="text-gray-800">Sophie T.</p>
-                <p className="text-gray-500 text-sm">Propriétaire investisseur</p>
-              </div>
-            </div>
-          </div>
+
+          <TestimonialSlider />
         </div>
       </section>
-      
       {/* CTA */}
       <section className="py-16 bg-primary-800 text-white">
         <div className="container-custom">
