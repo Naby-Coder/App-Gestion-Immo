@@ -77,7 +77,7 @@ const ContactPage = () => {
                 <div className="flex items-start mb-3">
                   <MapPin size={20} className="mr-3 text-primary-600 mt-1" />
                   <div>
-                    <p>123 Avenue des Champs-Élysées</p>
+                    <p>123 Avenue Cheikh Anta Diop, Dakar, Sénégal</p>
                     <p>75008 Dakar, Senegal</p>
                   </div>
                 </div>
