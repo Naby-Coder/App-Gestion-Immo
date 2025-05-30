@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { Users, Award, Clock, MapPin, Phone, Mail } from 'lucide-react';
 
 const AboutPage = () => {
   return (
