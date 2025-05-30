@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Building, Users, Search, Shield } from 'lucide-react';
+import { ArrowRight, Building, Users, Search, Shield, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
 import PropertySearch from '../components/common/PropertySearch';
 import PropertyCard from '../components/common/PropertyCard';
 import AgentCard from '../components/common/AgentCard';
+import TestimonialSlider from '../components/common/TestimonialSlider';
 import { properties } from '../data/properties';
 import { agents } from '../data/agents';
 
