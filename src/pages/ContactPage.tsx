@@ -21,7 +21,7 @@ const ContactPage = () => {
             <h3 className="text-xl font-semibold mb-2">Téléphone</h3>
             <p className="text-gray-600 mb-4">Notre équipe est disponible pour vous répondre par téléphone</p>
             <a href="tel:+33123456789" className="text-lg font-medium text-primary-600 hover:text-primary-700">
-              +33 1 23 45 67 89
+              +33 176 00 00
             </a>
           </div>
           
@@ -32,7 +32,7 @@ const ContactPage = () => {
             <h3 className="text-xl font-semibold mb-2">Email</h3>
             <p className="text-gray-600 mb-4">Envoyez-nous un email et nous vous répondrons rapidement</p>
             <a href="mailto:contact@immoexpert.fr" className="text-lg font-medium text-primary-600 hover:text-primary-700">
-              contact@immoexpert.fr
+              contact@immoexpert.sn
             </a>
           </div>
           
@@ -78,16 +78,16 @@ const ContactPage = () => {
                   <MapPin size={20} className="mr-3 text-primary-600 mt-1" />
                   <div>
                     <p>123 Avenue des Champs-Élysées</p>
-                    <p>75008 Paris, France</p>
+                    <p>75008 Dakar, Senegal</p>
                   </div>
                 </div>
                 <div className="flex items-center mb-3">
                   <Phone size={20} className="mr-3 text-primary-600" />
-                  <p>+33 1 23 45 67 89</p>
+                  <p>+33 176 00 00</p>
                 </div>
                 <div className="flex items-center">
                   <Mail size={20} className="mr-3 text-primary-600" />
-                  <p>contact@immoexpert.fr</p>
+                  <p>contact@immoexpert.sn</p>
                 </div>
               </div>
             </div>
