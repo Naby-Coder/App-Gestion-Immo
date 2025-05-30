@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import PropertySearch from '../components/common/PropertySearch';
 import PropertyCard from '../components/common/PropertyCard';
 import AgentCard from '../components/common/AgentCard';
-import TestimonialSlider from '../components/common/TestimonialSlider';
 import { properties } from '../data/properties';
 import { agents } from '../data/agents';
 
@@ -205,21 +204,6 @@ const HomePage = () => {
         </div>
       </section>
       
-     
-
-      {/* Testimonials */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Ce Que Disent Nos Clients</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Découvrez les témoignages de nos clients satisfaits
-            </p>
-          </div>
-
-          <TestimonialSlider />
-        </div>
-      </section>
       {/* CTA */}
       <section className="py-16 bg-primary-800 text-white">
         <div className="container-custom">
