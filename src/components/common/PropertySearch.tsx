@@ -35,6 +35,8 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
     onSearch(searchParams);
   };
 
+  const cities = ['Dakar', 'Thiès', 'Saint-Louis', 'Touba', 'Mbour', 'Saly', 'Rufisque'];
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <form onSubmit={handleSubmit}>
@@ -80,15 +82,18 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
             <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
               Ville
             </label>
-            <input
+            <select
               id="location"
               name="location"
-              type="text"
-              placeholder="Ex: Lyon, Paris..."
               value={searchParams.location}
               onChange={handleChange}
               className="input"
-            />
+            >
+              <option value="">Toutes les villes</option>
+              {cities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -99,7 +104,7 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
               id="minPrice"
               name="minPrice"
               type="number"
-              placeholder="Min €"
+              placeholder="Min XOF"
               value={searchParams.minPrice || ''}
               onChange={handleChange}
               className="input"
@@ -114,7 +119,7 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
               id="maxPrice"
               name="maxPrice"
               type="number"
-              placeholder="Max €"
+              placeholder="Max XOF"
               value={searchParams.maxPrice || ''}
               onChange={handleChange}
               className="input"

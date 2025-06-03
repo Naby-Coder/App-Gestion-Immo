@@ -82,6 +82,63 @@ export const properties: Property[] = [
     ],
     createdAt: '2023-07-05T14:20:00Z',
     updatedAt: '2023-07-05T14:20:00Z',
+    featured: true,
     agentId: '3'
+  },
+  {
+    id: '4',
+    title: 'Villa de luxe à Saly',
+    type: 'Maison',
+    status: 'Vente',
+    price: 350000000,
+    surface: 450,
+    rooms: 8,
+    bedrooms: 5,
+    bathrooms: 4,
+    description: "Somptueuse villa pieds dans l'eau à Saly. Cette propriété exceptionnelle offre des prestations haut de gamme avec accès direct à la plage. Grande piscine, jardin tropical, et espaces de vie spacieux.",
+    address: {
+      street: '15 Boulevard Maritime',
+      city: 'Saly',
+      zipCode: '23000',
+      country: 'Sénégal'
+    },
+    features: ['Piscine', 'Accès plage', 'Jardin', 'Garage', 'Sécurité 24/7'],
+    images: [
+      'https://images.pexels.com/photos/1732414/pexels-photo-1732414.jpeg',
+      'https://images.pexels.com/photos/1732415/pexels-photo-1732415.jpeg',
+      'https://images.pexels.com/photos/1732416/pexels-photo-1732416.jpeg'
+    ],
+    createdAt: '2023-08-10T09:00:00Z',
+    updatedAt: '2023-08-10T09:00:00Z',
+    featured: true,
+    agentId: '1'
+  },
+  {
+    id: '5',
+    title: 'Bureau moderne à Plateau',
+    type: 'Bureau',
+    status: 'Location',
+    price: 2500000,
+    surface: 200,
+    rooms: 4,
+    bedrooms: 0,
+    bathrooms: 2,
+    description: "Espace de bureau moderne et fonctionnel au cœur du quartier d'affaires. Open space, salles de réunion, et bureaux privatifs. Idéal pour entreprise ou profession libérale.",
+    address: {
+      street: '28 Rue Félix Faure',
+      city: 'Dakar',
+      zipCode: '11500',
+      country: 'Sénégal'
+    },
+    features: ['Climatisation', 'Fibre optique', 'Parking', 'Sécurité 24/7'],
+    images: [
+      'https://images.pexels.com/photos/1743555/pexels-photo-1743555.jpeg',
+      'https://images.pexels.com/photos/1743556/pexels-photo-1743556.jpeg',
+      'https://images.pexels.com/photos/1743557/pexels-photo-1743557.jpeg'
+    ],
+    createdAt: '2023-09-15T11:30:00Z',
+    updatedAt: '2023-09-15T11:30:00Z',
+    featured: true,
+    agentId: '2'
   }
 ];
