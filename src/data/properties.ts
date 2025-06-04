@@ -140,5 +140,33 @@ export const properties: Property[] = [
     updatedAt: '2023-09-15T11:30:00Z',
     featured: true,
     agentId: '2'
+  },
+  {
+    id: '6',
+    title: 'Villa contemporaine à Fann',
+    type: 'Maison',
+    status: 'Vente',
+    price: 280000000,
+    surface: 380,
+    rooms: 7,
+    bedrooms: 4,
+    bathrooms: 3,
+    description: "Magnifique villa contemporaine située dans le quartier prisé de Fann. Cette propriété d'exception offre des prestations haut de gamme avec une architecture moderne. La villa comprend un vaste séjour cathédrale, une cuisine entièrement équipée, quatre grandes chambres avec salles de bains, un bureau, une salle de sport, et une piscine chauffée.",
+    address: {
+      street: '45 Avenue Cheikh Anta Diop',
+      city: 'Dakar',
+      zipCode: '12100',
+      country: 'Sénégal'
+    },
+    features: ['Piscine chauffée', 'Salle de sport', 'Domotique', 'Jardin paysager', 'Garage double', 'Sécurité 24/7'],
+    images: [
+      'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg',
+      'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg',
+      'https://images.pexels.com/photos/1396127/pexels-photo-1396127.jpeg'
+    ],
+    createdAt: '2023-10-01T09:00:00Z',
+    updatedAt: '2023-10-01T09:00:00Z',
+    featured: true,
+    agentId: '3'
   }
 ];
