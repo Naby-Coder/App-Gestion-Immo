@@ -106,7 +106,7 @@ const PropertyListPage = () => {
                   id="sort"
                   value={sortOption}
                   onChange={handleSortChange}
-                  className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-700"
+                  className="appearance-none bg-white border border-gray-300 rounded-md pl-3 pr-10 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900"
                 >
                   <option value="date-desc">Date (récent)</option>
                   <option value="date-asc">Date (ancien)</option>

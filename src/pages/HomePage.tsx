@@ -12,7 +12,7 @@ import { agents } from '../data/agents';
 const HomePage = () => {
   const [searchParams, setSearchParams] = useState({});
   
-  const featuredProperties = properties.filter(property => property.featured).slice(0, 3);
+  const featuredProperties = properties.filter(property => property.featured).slice(0, 6);
   const featuredAgents = agents.slice(0, 3);
   
   const handleSearch = (params: any) => {

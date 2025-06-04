@@ -50,7 +50,7 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
               name="status"
               value={searchParams.status}
               onChange={handleChange}
-              className="input"
+              className="input text-gray-900"
             >
               <option value="">Tous</option>
               <option value="Vente">Vente</option>
@@ -67,7 +67,7 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
               name="type"
               value={searchParams.type}
               onChange={handleChange}
-              className="input"
+              className="input text-gray-900"
             >
               <option value="">Tous</option>
               <option value="Appartement">Appartement</option>
@@ -87,7 +87,7 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
               name="location"
               value={searchParams.location}
               onChange={handleChange}
-              className="input"
+              className="input text-gray-900"
             >
               <option value="">Toutes les villes</option>
               {cities.map(city => (
@@ -135,7 +135,7 @@ const PropertySearch = ({ onSearch }: PropertySearchProps) => {
               name="minRooms"
               value={searchParams.minRooms}
               onChange={handleChange}
-              className="input"
+              className="input text-gray-900"
             >
               <option value={0}>Indifférent</option>
               <option value={1}>1+</option>
