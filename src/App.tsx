@@ -6,9 +6,16 @@ import PropertyDetailPage from './pages/PropertyDetailPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import BlogPage from './pages/BlogPage';
+import BlogArticlePage from './pages/blog/BlogArticlePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import ClientLayout from './components/layout/ClientLayout';
 import ClientDashboard from './pages/client/ClientDashboard';
+import ClientFavorites from './pages/client/ClientFavorites';
+import ClientRequests from './pages/client/ClientRequests';
+import ClientMessages from './pages/client/ClientMessages';
+import ClientAppointments from './pages/client/ClientAppointments';
+import ClientProfile from './pages/client/ClientProfile';
 import AdminLayout from './components/layout/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProperties from './pages/admin/AdminProperties';
@@ -27,13 +34,19 @@ function App() {
         <Route path="a-propos" element={<AboutPage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="blog" element={<BlogPage />} />
+        <Route path="blog/:slug" element={<BlogArticlePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="inscription" element={<RegisterPage />} />
       </Route>
 
       {/* Routes client */}
-      <Route path="espace-client" element={<Layout />}>
+      <Route path="espace-client" element={<ClientLayout />}>
         <Route index element={<ClientDashboard />} />
+        <Route path="favoris" element={<ClientFavorites />} />
+        <Route path="demandes" element={<ClientRequests />} />
+        <Route path="messages" element={<ClientMessages />} />
+        <Route path="rendez-vous" element={<ClientAppointments />} />
+        <Route path="profil" element={<ClientProfile />} />
       </Route>
 
       {/* Routes admin */}

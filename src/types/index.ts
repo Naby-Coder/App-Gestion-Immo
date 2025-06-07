@@ -84,3 +84,46 @@ export interface RegisterFormData {
   confirmPassword: string;
   role: 'client' | 'agent';
 }
+
+export interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  author: string;
+  publishedAt: string;
+  category: string;
+  tags: string[];
+}
+
+export interface Favorite {
+  id: string;
+  userId: string;
+  propertyId: string;
+  createdAt: string;
+}
+
+export interface Appointment {
+  id: string;
+  userId: string;
+  propertyId: string;
+  agentId: string;
+  date: string;
+  time: string;
+  status: 'Programmé' | 'Confirmé' | 'Terminé' | 'Annulé';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  subject: string;
+  content: string;
+  read: boolean;
+  createdAt: string;
+  propertyId?: string;
+}
