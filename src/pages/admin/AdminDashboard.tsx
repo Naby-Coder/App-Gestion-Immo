@@ -15,9 +15,18 @@ const AdminDashboard = () => {
   const totalClients = clients.length;
   const newRequests = contactRequests.filter(r => r.status === 'Nouveau').length;
   
-  // Données de graphique (simulées)
-  const monthlyData = [150000, 320000, 210000, 450000, 280000, 390000];
-  const maxValue = Math.max(...monthlyData);
+  // Données de ventes mensuelles réalistes pour le Sénégal (en XOF)
+  const monthlyData = [
+    { month: 'Jan', sales: 45000000, transactions: 8 },
+    { month: 'Fév', sales: 62000000, transactions: 12 },
+    { month: 'Mar', sales: 38000000, transactions: 6 },
+    { month: 'Avr', sales: 78000000, transactions: 15 },
+    { month: 'Mai', sales: 55000000, transactions: 10 },
+    { month: 'Juin', sales: 89000000, transactions: 18 }
+  ];
+  
+  const maxValue = Math.max(...monthlyData.map(d => d.sales));
+  const currentMonthSales = monthlyData[monthlyData.length - 1].sales;
   
   return (
     <div>
@@ -56,9 +65,9 @@ const AdminDashboard = () => {
           </div>
           <div className="mt-4 flex justify-between items-center">
             <div className="flex items-center">
-              <span className="text-xs font-medium text-success-500">+2 nouveaux ce mois</span>
+              <span className="text-xs font-medium text-success-500">+3 nouveaux ce mois</span>
             </div>
-            <span className="text-xs font-medium text-gray-500">+12% vs mois dernier</span>
+            <span className="text-xs font-medium text-gray-500">+15% vs mois dernier</span>
           </div>
         </div>
         
@@ -76,7 +85,7 @@ const AdminDashboard = () => {
             <div className="flex items-center">
               <span className="text-xs font-medium text-warning-500">{newRequests} en attente</span>
             </div>
-            <span className="text-xs font-medium text-gray-500">Temps moyen: 1j</span>
+            <span className="text-xs font-medium text-gray-500">Temps moyen: 2j</span>
           </div>
         </div>
         
@@ -84,7 +93,7 @@ const AdminDashboard = () => {
           <div className="flex justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">CA Mensuel</p>
-              <p className="text-2xl font-bold">{formatPrice(390000)}</p>
+              <p className="text-2xl font-bold">{formatPrice(currentMonthSales)}</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
               <CreditCard className="h-6 w-6 text-gray-600" />
@@ -93,7 +102,7 @@ const AdminDashboard = () => {
           <div className="mt-4 flex justify-between items-center">
             <div className="flex items-center">
               <TrendingUp className="h-4 w-4 text-success-500 mr-1" />
-              <span className="text-xs font-medium text-success-500">+8.2%</span>
+              <span className="text-xs font-medium text-success-500">+12.5%</span>
             </div>
             <span className="text-xs font-medium text-gray-500">vs mois dernier</span>
           </div>
@@ -107,26 +116,37 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold text-gray-800">Ventes Mensuelles</h2>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-gray-500">Cette année</span>
+              <span className="text-xs font-medium text-gray-500">2025</span>
             </div>
           </div>
           
           <div className="h-64">
-            <div className="flex h-full items-end space-x-6">
-              {monthlyData.map((value, index) => (
+            <div className="flex h-full items-end space-x-4">
+              {monthlyData.map((data, index) => (
                 <div key={index} className="flex-1 flex flex-col items-center">
-                  <div className="w-full bg-primary-100 rounded-t-sm" style={{ height: `${(value / maxValue) * 100}%` }}>
+                  <div className="w-full bg-primary-100 rounded-t-sm relative group" style={{ height: `${(data.sales / maxValue) * 100}%` }}>
                     <div 
-                      className="bg-primary-500 w-full h-full rounded-t-sm transition-all duration-500"
-                      style={{ opacity: index === 5 ? 1 : 0.7 }}
+                      className="bg-primary-500 w-full h-full rounded-t-sm transition-all duration-500 hover:bg-primary-600"
+                      style={{ opacity: index === monthlyData.length - 1 ? 1 : 0.8 }}
                     ></div>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      <div>{formatPrice(data.sales)}</div>
+                      <div>{data.transactions} transactions</div>
+                    </div>
                   </div>
                   <div className="text-xs font-medium text-gray-500 mt-2">
-                    {['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'][index]}
+                    {data.month}
                   </div>
                 </div>
               ))}
             </div>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
+              Total: <span className="font-semibold">{formatPrice(monthlyData.reduce((sum, d) => sum + d.sales, 0))}</span>
+            </p>
           </div>
         </div>
         
@@ -135,7 +155,7 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold text-gray-800">Performance</h2>
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-medium text-gray-500">Juin 2023</span>
+              <span className="text-xs font-medium text-gray-500">Juin 2025</span>
             </div>
           </div>
           
@@ -145,11 +165,11 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium text-gray-600">Taux de conversion visites</span>
                 <div className="flex items-center">
                   <Percent className="h-4 w-4 text-primary-500 mr-1" />
-                  <span className="text-sm font-semibold text-primary-600">3.8%</span>
+                  <span className="text-sm font-semibold text-primary-600">4.2%</span>
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-primary-500 h-2 rounded-full" style={{ width: '38%' }}></div>
+                <div className="bg-primary-500 h-2 rounded-full" style={{ width: '42%' }}></div>
               </div>
             </div>
             
@@ -158,11 +178,11 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium text-gray-600">Délai moyen de vente</span>
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 text-secondary-500 mr-1" />
-                  <span className="text-sm font-semibold text-secondary-600">45 jours</span>
+                  <span className="text-sm font-semibold text-secondary-600">38 jours</span>
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-secondary-500 h-2 rounded-full" style={{ width: '65%' }}></div>
+                <div className="bg-secondary-500 h-2 rounded-full" style={{ width: '72%' }}></div>
               </div>
             </div>
             
@@ -171,11 +191,11 @@ const AdminDashboard = () => {
                 <span className="text-sm font-medium text-gray-600">Satisfaction client</span>
                 <div className="flex items-center">
                   <Activity className="h-4 w-4 text-success-500 mr-1" />
-                  <span className="text-sm font-semibold text-success-600">4.7/5</span>
+                  <span className="text-sm font-semibold text-success-600">4.8/5</span>
                 </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-success-500 h-2 rounded-full" style={{ width: '94%' }}></div>
+                <div className="bg-success-500 h-2 rounded-full" style={{ width: '96%' }}></div>
               </div>
             </div>
           </div>
@@ -204,10 +224,10 @@ const AdminDashboard = () => {
                     <span className="text-sm font-medium text-gray-800">Nouvelle demande</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Appartement T3 avec terrasse</span>
+                    <span className="text-sm text-gray-600">Villa moderne aux Almadies</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Sophie Martin</span>
+                    <span className="text-sm text-gray-600">Mouhamed Ndione</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">Aujourd'hui, 10:30</span>
@@ -223,10 +243,10 @@ const AdminDashboard = () => {
                     <span className="text-sm font-medium text-gray-800">Visite planifiée</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Maison familiale avec jardin</span>
+                    <span className="text-sm text-gray-600">Appartement de standing à Plateau</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Thomas Dubois</span>
+                    <span className="text-sm text-gray-600">Fadel Fall</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">Aujourd'hui, 14:00</span>
@@ -239,13 +259,13 @@ const AdminDashboard = () => {
                 </tr>
                 <tr>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-800">Offre acceptée</span>
+                    <span className="text-sm font-medium text-gray-800">Vente finalisée</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Studio moderne en centre-ville</span>
+                    <span className="text-sm text-gray-600">Villa de luxe à Saly</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Émilie Laurent</span>
+                    <span className="text-sm text-gray-600">Aïssatou Sall</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">Hier, 16:45</span>
@@ -261,10 +281,10 @@ const AdminDashboard = () => {
                     <span className="text-sm font-medium text-gray-800">Nouveau bien ajouté</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Local commercial en rez-de-chaussée</span>
+                    <span className="text-sm text-gray-600">Local commercial à Ngor</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Thomas Dubois</span>
+                    <span className="text-sm text-gray-600">Fadel Fall</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">20 juin, 11:15</span>

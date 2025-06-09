@@ -45,7 +45,7 @@ const AdminHeader = ({ toggleSidebar }: AdminHeaderProps) => {
             {/* Profile dropdown */}
             <div className="relative">
               <button className="flex items-center text-sm font-medium text-gray-700 rounded-full hover:text-gray-900 focus:outline-none">
-                <span className="hidden md:block mr-2">Marc Dupont</span>
+                <span className="hidden md:block mr-2">Mouhamed Ndione</span>
                 <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
                   <User size={16} />
                 </div>

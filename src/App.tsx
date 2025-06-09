@@ -21,6 +21,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProperties from './pages/admin/AdminProperties';
 import AdminClients from './pages/admin/AdminClients';
 import AdminRequests from './pages/admin/AdminRequests';
+import AdminContracts from './pages/admin/AdminContracts';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminSettings from './pages/admin/AdminSettings';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -55,6 +58,9 @@ function App() {
         <Route path="biens" element={<AdminProperties />} />
         <Route path="clients" element={<AdminClients />} />
         <Route path="demandes" element={<AdminRequests />} />
+        <Route path="contrats" element={<AdminContracts />} />
+        <Route path="paiements" element={<AdminPayments />} />
+        <Route path="parametres" element={<AdminSettings />} />
       </Route>
 
       {/* Route 404 */}
