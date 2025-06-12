@@ -4,6 +4,7 @@ import {
   ChevronLeft, ChevronRight, Calendar, CreditCard, AlertCircle
 } from 'lucide-react';
 import { formatPrice, formatDate } from '../../utils/formatters';
+import AddPaymentModal from '../../components/admin/AddPaymentModal';
 
 interface Payment {
   id: string;
@@ -18,7 +19,7 @@ interface Payment {
   reference: string;
 }
 
-const payments: Payment[] = [
+const initialPayments: Payment[] = [
   {
     id: '1',
     type: 'Commission',
@@ -80,10 +81,12 @@ const payments: Payment[] = [
 ];
 
 const AdminPayments = () => {
+  const [payments, setPayments] = useState(initialPayments);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les paiements
@@ -134,12 +137,27 @@ const AdminPayments = () => {
         return null;
     }
   };
+
+  const handleAddPayment = (newPayment: any) => {
+    setPayments(prev => [newPayment, ...prev]);
+    alert('Paiement créé avec succès !');
+  };
+
+  const handleDeletePayment = (paymentId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce paiement ?')) {
+      setPayments(prev => prev.filter(p => p.id !== paymentId));
+      alert('Paiement supprimé avec succès !');
+    }
+  };
   
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800 mb-4 md:mb-0">Gestion des paiements</h1>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn-primary flex items-center"
+        >
           <Plus size={16} className="mr-2" />
           Nouveau paiement
         </button>
@@ -338,7 +356,11 @@ const AdminPayments = () => {
                       <button className="p-1 text-green-600 hover:text-green-800" title="Télécharger">
                         <Download size={18} />
                       </button>
-                      <button className="p-1 text-red-600 hover:text-red-800" title="Supprimer">
+                      <button 
+                        onClick={() => handleDeletePayment(payment.id)}
+                        className="p-1 text-red-600 hover:text-red-800" 
+                        title="Supprimer"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -411,6 +433,13 @@ const AdminPayments = () => {
           </div>
         )}
       </div>
+
+      {/* Add Payment Modal */}
+      <AddPaymentModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddPayment}
+      />
     </div>
   );
 };

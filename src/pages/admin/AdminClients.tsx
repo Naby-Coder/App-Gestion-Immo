@@ -3,12 +3,15 @@ import {
   Plus, Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, 
   Mail, Phone, Calendar
 } from 'lucide-react';
-import { clients } from '../../data/clients';
+import { clients as initialClients } from '../../data/clients';
 import { formatDate } from '../../utils/formatters';
+import AddClientModal from '../../components/admin/AddClientModal';
 
 const AdminClients = () => {
+  const [clients, setClients] = useState(initialClients);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les clients
@@ -31,12 +34,27 @@ const AdminClients = () => {
       setCurrentPage(page);
     }
   };
+
+  const handleAddClient = (newClient: any) => {
+    setClients(prev => [newClient, ...prev]);
+    alert('Client ajouté avec succès !');
+  };
+
+  const handleDeleteClient = (clientId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
+      setClients(prev => prev.filter(c => c.id !== clientId));
+      alert('Client supprimé avec succès !');
+    }
+  };
   
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800 mb-4 md:mb-0">Gestion des clients</h1>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn-primary flex items-center"
+        >
           <Plus size={16} className="mr-2" />
           Ajouter un client
         </button>
@@ -135,7 +153,11 @@ const AdminClients = () => {
                       <button className="p-1 text-yellow-600 hover:text-yellow-800" title="Modifier">
                         <Edit size={18} />
                       </button>
-                      <button className="p-1 text-red-600 hover:text-red-800" title="Supprimer">
+                      <button 
+                        onClick={() => handleDeleteClient(client.id)}
+                        className="p-1 text-red-600 hover:text-red-800" 
+                        title="Supprimer"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -193,10 +215,6 @@ const AdminClients = () => {
                 );
               })}
               
-              {totalPages > 5 && (
-                <span className="flex items-center justify-center w-8 h-8 text-sm text-gray-500">...</span>
-              )}
-              
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -212,6 +230,13 @@ const AdminClients = () => {
           </div>
         )}
       </div>
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddClient}
+      />
     </div>
   );
 };

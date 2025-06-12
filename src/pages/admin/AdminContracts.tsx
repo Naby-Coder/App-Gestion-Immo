@@ -4,6 +4,7 @@ import {
   ChevronLeft, ChevronRight, Calendar, User, Building
 } from 'lucide-react';
 import { formatPrice, formatDate } from '../../utils/formatters';
+import AddContractModal from '../../components/admin/AddContractModal';
 
 interface Contract {
   id: string;
@@ -17,7 +18,7 @@ interface Contract {
   signedAt?: string;
 }
 
-const contracts: Contract[] = [
+const initialContracts: Contract[] = [
   {
     id: '1',
     type: 'Vente',
@@ -73,10 +74,12 @@ const contracts: Contract[] = [
 ];
 
 const AdminContracts = () => {
+  const [contracts, setContracts] = useState(initialContracts);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les contrats
@@ -118,12 +121,27 @@ const AdminContracts = () => {
         return 'bg-gray-100 text-gray-700';
     }
   };
+
+  const handleAddContract = (newContract: any) => {
+    setContracts(prev => [newContract, ...prev]);
+    alert('Contrat créé avec succès !');
+  };
+
+  const handleDeleteContract = (contractId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce contrat ?')) {
+      setContracts(prev => prev.filter(c => c.id !== contractId));
+      alert('Contrat supprimé avec succès !');
+    }
+  };
   
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800 mb-4 md:mb-0">Gestion des contrats</h1>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn-primary flex items-center"
+        >
           <Plus size={16} className="mr-2" />
           Nouveau contrat
         </button>
@@ -266,7 +284,11 @@ const AdminContracts = () => {
                       <button className="p-1 text-green-600 hover:text-green-800" title="Télécharger">
                         <Download size={18} />
                       </button>
-                      <button className="p-1 text-red-600 hover:text-red-800" title="Supprimer">
+                      <button 
+                        onClick={() => handleDeleteContract(contract.id)}
+                        className="p-1 text-red-600 hover:text-red-800" 
+                        title="Supprimer"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -339,6 +361,13 @@ const AdminContracts = () => {
           </div>
         )}
       </div>
+
+      {/* Add Contract Modal */}
+      <AddContractModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddContract}
+      />
     </div>
   );
 };

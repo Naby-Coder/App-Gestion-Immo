@@ -3,13 +3,16 @@ import {
   Plus, Search, Filter, Eye, Edit, Trash2, 
   ChevronLeft, ChevronRight 
 } from 'lucide-react';
-import { properties } from '../../data/properties';
+import { properties as initialProperties } from '../../data/properties';
 import { formatPrice } from '../../utils/formatters';
+import AddPropertyModal from '../../components/admin/AddPropertyModal';
 
 const AdminProperties = () => {
+  const [properties, setProperties] = useState(initialProperties);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les biens
@@ -32,12 +35,27 @@ const AdminProperties = () => {
       setCurrentPage(page);
     }
   };
+
+  const handleAddProperty = (newProperty: any) => {
+    setProperties(prev => [newProperty, ...prev]);
+    alert('Bien immobilier ajouté avec succès !');
+  };
+
+  const handleDeleteProperty = (propertyId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce bien ?')) {
+      setProperties(prev => prev.filter(p => p.id !== propertyId));
+      alert('Bien supprimé avec succès !');
+    }
+  };
   
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800 mb-4 md:mb-0">Gestion des biens</h1>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="btn-primary flex items-center"
+        >
           <Plus size={16} className="mr-2" />
           Ajouter un bien
         </button>
@@ -142,7 +160,11 @@ const AdminProperties = () => {
                       <button className="p-1 text-yellow-600 hover:text-yellow-800" title="Modifier">
                         <Edit size={18} />
                       </button>
-                      <button className="p-1 text-red-600 hover:text-red-800" title="Supprimer">
+                      <button 
+                        onClick={() => handleDeleteProperty(property.id)}
+                        className="p-1 text-red-600 hover:text-red-800" 
+                        title="Supprimer"
+                      >
                         <Trash2 size={18} />
                       </button>
                     </div>
@@ -219,6 +241,13 @@ const AdminProperties = () => {
           </div>
         )}
       </div>
+
+      {/* Add Property Modal */}
+      <AddPropertyModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddProperty}
+      />
     </div>
   );
 };
