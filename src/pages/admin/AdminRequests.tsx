@@ -1,20 +1,24 @@
 import { useState } from 'react';
 import { 
   Search, Filter, MessageSquare, Calendar, User, Check, 
-  Clock, X, AlertCircle, ChevronLeft, ChevronRight
+  Clock, X, AlertCircle, ChevronLeft, ChevronRight, Eye, Reply
 } from 'lucide-react';
-import { contactRequests } from '../../data/requests';
+import { contactRequests as initialRequests } from '../../data/requests';
 import { properties } from '../../data/properties';
 import { formatDate } from '../../utils/formatters';
 
 const AdminRequests = () => {
+  const [requests, setRequests] = useState(initialRequests);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les demandes
-  const filteredRequests = contactRequests.filter(request => {
+  const filteredRequests = requests.filter(request => {
     const fullName = `${request.firstName} ${request.lastName}`.toLowerCase();
     const matchesSearch = (
       fullName.includes(searchTerm.toLowerCase()) ||
@@ -69,11 +73,54 @@ const AdminRequests = () => {
         return 'bg-gray-100 text-gray-700';
     }
   };
+
+  const handleViewRequest = (request: any) => {
+    setSelectedRequest(request);
+    setIsViewModalOpen(true);
+  };
+
+  const handleReplyRequest = (request: any) => {
+    setSelectedRequest(request);
+    setIsReplyModalOpen(true);
+  };
+
+  const handleMarkAsProcessed = (requestId: string) => {
+    setRequests(prev => prev.map(req => 
+      req.id === requestId ? { ...req, status: 'Traité' as const } : req
+    ));
+    alert('Demande marquée comme traitée !');
+  };
+
+  const handleMarkAsInProgress = (requestId: string) => {
+    setRequests(prev => prev.map(req => 
+      req.id === requestId ? { ...req, status: 'En cours' as const } : req
+    ));
+    alert('Demande marquée comme en cours !');
+  };
+
+  const handleIgnoreRequest = (requestId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir ignorer cette demande ?')) {
+      setRequests(prev => prev.filter(req => req.id !== requestId));
+      alert('Demande ignorée !');
+    }
+  };
+
+  const sendReply = (message: string) => {
+    console.log(`Réponse envoyée à ${selectedRequest.firstName} ${selectedRequest.lastName}: ${message}`);
+    handleMarkAsInProgress(selectedRequest.id);
+    setIsReplyModalOpen(false);
+    alert('Réponse envoyée avec succès !');
+  };
   
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Gestion des demandes</h1>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600">
+            {requests.filter(r => r.status === 'Nouveau').length} nouvelles demandes
+          </span>
+        </div>
       </div>
       
       {/* Filters */}
@@ -173,13 +220,32 @@ const AdminRequests = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex justify-center space-x-2">
-                      <button className="p-1 text-primary-600 hover:text-primary-800" title="Répondre">
-                        <MessageSquare size={18} />
+                      <button 
+                        onClick={() => handleViewRequest(request)}
+                        className="p-1 text-blue-600 hover:text-blue-800" 
+                        title="Voir les détails"
+                      >
+                        <Eye size={18} />
                       </button>
-                      <button className="p-1 text-success-600 hover:text-success-800" title="Marquer comme traité">
+                      <button 
+                        onClick={() => handleReplyRequest(request)}
+                        className="p-1 text-primary-600 hover:text-primary-800" 
+                        title="Répondre"
+                      >
+                        <Reply size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleMarkAsProcessed(request.id)}
+                        className="p-1 text-success-600 hover:text-success-800" 
+                        title="Marquer comme traité"
+                      >
                         <Check size={18} />
                       </button>
-                      <button className="p-1 text-red-600 hover:text-red-800" title="Ignorer">
+                      <button 
+                        onClick={() => handleIgnoreRequest(request.id)}
+                        className="p-1 text-red-600 hover:text-red-800" 
+                        title="Ignorer"
+                      >
                         <X size={18} />
                       </button>
                     </div>
@@ -237,10 +303,6 @@ const AdminRequests = () => {
                 );
               })}
               
-              {totalPages > 5 && (
-                <span className="flex items-center justify-center w-8 h-8 text-sm text-gray-500">...</span>
-              )}
-              
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -256,6 +318,108 @@ const AdminRequests = () => {
           </div>
         )}
       </div>
+
+      {/* View Request Modal */}
+      {isViewModalOpen && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Détails de la demande</h2>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Informations du contact</h3>
+                  <p><strong>Nom:</strong> {selectedRequest.firstName} {selectedRequest.lastName}</p>
+                  <p><strong>Email:</strong> {selectedRequest.email}</p>
+                  <p><strong>Téléphone:</strong> {selectedRequest.phone}</p>
+                  <p><strong>Date:</strong> {formatDate(selectedRequest.createdAt)}</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Bien concerné</h3>
+                  <p>{getPropertyTitle(selectedRequest.propertyId)}</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Message</h3>
+                  <p className="bg-gray-50 p-4 rounded-md">{selectedRequest.message}</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Statut</h3>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(selectedRequest.status)}`}>
+                    {getStatusIcon(selectedRequest.status)}
+                    <span className="ml-1">{selectedRequest.status}</span>
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-4 mt-6">
+                <button 
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleReplyRequest(selectedRequest);
+                  }}
+                  className="btn-primary"
+                >
+                  Répondre
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reply Modal */}
+      {isReplyModalOpen && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Répondre à la demande</h2>
+              <button onClick={() => setIsReplyModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="mb-4">À: {selectedRequest.firstName} {selectedRequest.lastName} ({selectedRequest.email})</p>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                sendReply(formData.get('message') as string);
+              }}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Objet</label>
+                  <input
+                    type="text"
+                    name="subject"
+                    className="input"
+                    defaultValue={`Re: ${getPropertyTitle(selectedRequest.propertyId)}`}
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                  <textarea
+                    name="message"
+                    rows={4}
+                    className="input"
+                    placeholder="Votre réponse..."
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-4">
+                  <button type="button" onClick={() => setIsReplyModalOpen(false)} className="btn-outline">
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Envoyer la réponse
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

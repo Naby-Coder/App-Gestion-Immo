@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Plus, Search, Filter, Eye, Edit, Trash2, Download,
-  ChevronLeft, ChevronRight, Calendar, CreditCard, AlertCircle
+  ChevronLeft, ChevronRight, Calendar, CreditCard, AlertCircle, X, CheckCircle
 } from 'lucide-react';
 import { formatPrice, formatDate } from '../../utils/formatters';
 import AddPaymentModal from '../../components/admin/AddPaymentModal';
@@ -17,6 +17,7 @@ interface Payment {
   dueDate: string;
   paidDate?: string;
   reference: string;
+  notes?: string;
 }
 
 const initialPayments: Payment[] = [
@@ -87,6 +88,9 @@ const AdminPayments = () => {
   const [filterType, setFilterType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les paiements
@@ -133,6 +137,8 @@ const AdminPayments = () => {
     switch (status) {
       case 'Retard':
         return <AlertCircle size={14} className="mr-1" />;
+      case 'Payé':
+        return <CheckCircle size={14} className="mr-1" />;
       default:
         return null;
     }
@@ -143,11 +149,44 @@ const AdminPayments = () => {
     alert('Paiement créé avec succès !');
   };
 
+  const handleViewPayment = (payment: any) => {
+    setSelectedPayment(payment);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditPayment = (payment: any) => {
+    setSelectedPayment(payment);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdatePayment = (updatedPayment: any) => {
+    setPayments(prev => prev.map(p => 
+      p.id === updatedPayment.id ? updatedPayment : p
+    ));
+    setIsEditModalOpen(false);
+    alert('Paiement modifié avec succès !');
+  };
+
   const handleDeletePayment = (paymentId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce paiement ?')) {
       setPayments(prev => prev.filter(p => p.id !== paymentId));
       alert('Paiement supprimé avec succès !');
     }
+  };
+
+  const handleMarkAsPaid = (paymentId: string) => {
+    setPayments(prev => prev.map(p => 
+      p.id === paymentId ? { 
+        ...p, 
+        status: 'Payé' as const, 
+        paidDate: new Date().toISOString() 
+      } : p
+    ));
+    alert('Paiement marqué comme payé !');
+  };
+
+  const handleDownloadReceipt = (payment: any) => {
+    alert(`Téléchargement du reçu ${payment.reference} en cours...`);
   };
   
   return (
@@ -347,13 +386,25 @@ const AdminPayments = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex justify-center space-x-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-800" title="Voir">
+                      <button 
+                        onClick={() => handleViewPayment(payment)}
+                        className="p-1 text-blue-600 hover:text-blue-800" 
+                        title="Voir"
+                      >
                         <Eye size={18} />
                       </button>
-                      <button className="p-1 text-yellow-600 hover:text-yellow-800" title="Modifier">
+                      <button 
+                        onClick={() => handleEditPayment(payment)}
+                        className="p-1 text-yellow-600 hover:text-yellow-800" 
+                        title="Modifier"
+                      >
                         <Edit size={18} />
                       </button>
-                      <button className="p-1 text-green-600 hover:text-green-800" title="Télécharger">
+                      <button 
+                        onClick={() => handleDownloadReceipt(payment)}
+                        className="p-1 text-green-600 hover:text-green-800" 
+                        title="Télécharger"
+                      >
                         <Download size={18} />
                       </button>
                       <button 
@@ -440,6 +491,191 @@ const AdminPayments = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddPayment}
       />
+
+      {/* View Payment Modal */}
+      {isViewModalOpen && selectedPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Détails du paiement</h2>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Référence</h3>
+                    <p className="text-lg font-semibold">{selectedPayment.reference}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Type</h3>
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                      selectedPayment.type === 'Commission' ? 'bg-primary-100 text-primary-700' :
+                      selectedPayment.type === 'Loyer' ? 'bg-secondary-100 text-secondary-700' :
+                      selectedPayment.type === 'Caution' ? 'bg-accent-100 text-accent-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {selectedPayment.type}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Client</h3>
+                  <p className="text-lg">{selectedPayment.clientName}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Bien concerné</h3>
+                  <p className="text-lg">{selectedPayment.propertyTitle}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Montant</h3>
+                    <p className="text-2xl font-bold text-primary-600">{formatPrice(selectedPayment.amount)}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Méthode</h3>
+                    <p className="text-lg">{selectedPayment.method}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Date d'échéance</h3>
+                    <p>{formatDate(selectedPayment.dueDate)}</p>
+                  </div>
+                  {selectedPayment.paidDate && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Date de paiement</h3>
+                      <p>{formatDate(selectedPayment.paidDate)}</p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Statut</h3>
+                  <span className={`inline-flex items-center px-2 py-1 text-xs leading-5 font-semibold rounded-full ${getStatusClass(selectedPayment.status)}`}>
+                    {getStatusIcon(selectedPayment.status)}
+                    {selectedPayment.status}
+                  </span>
+                </div>
+                {selectedPayment.notes && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                    <p className="bg-gray-50 p-3 rounded-md">{selectedPayment.notes}</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end space-x-4 mt-6">
+                {selectedPayment.status === 'En attente' && (
+                  <button 
+                    onClick={() => {
+                      handleMarkAsPaid(selectedPayment.id);
+                      setIsViewModalOpen(false);
+                    }}
+                    className="btn-primary"
+                  >
+                    Marquer comme payé
+                  </button>
+                )}
+                <button 
+                  onClick={() => handleDownloadReceipt(selectedPayment)}
+                  className="btn-outline"
+                >
+                  Télécharger reçu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Payment Modal */}
+      {isEditModalOpen && selectedPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Modifier le paiement</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdatePayment(selectedPayment);
+              }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                      value={selectedPayment.type}
+                      onChange={(e) => setSelectedPayment(prev => ({ ...prev, type: e.target.value }))}
+                      className="input"
+                    >
+                      <option value="Commission">Commission</option>
+                      <option value="Loyer">Loyer</option>
+                      <option value="Caution">Caution</option>
+                      <option value="Frais">Frais</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <select
+                      value={selectedPayment.status}
+                      onChange={(e) => setSelectedPayment(prev => ({ ...prev, status: e.target.value }))}
+                      className="input"
+                    >
+                      <option value="En attente">En attente</option>
+                      <option value="Payé">Payé</option>
+                      <option value="Retard">En retard</option>
+                      <option value="Annulé">Annulé</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Montant (XOF)</label>
+                    <input
+                      type="number"
+                      value={selectedPayment.amount}
+                      onChange={(e) => setSelectedPayment(prev => ({ ...prev, amount: parseInt(e.target.value) }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Méthode</label>
+                    <select
+                      value={selectedPayment.method}
+                      onChange={(e) => setSelectedPayment(prev => ({ ...prev, method: e.target.value }))}
+                      className="input"
+                    >
+                      <option value="Virement">Virement</option>
+                      <option value="Chèque">Chèque</option>
+                      <option value="Espèces">Espèces</option>
+                      <option value="Carte">Carte</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea
+                      rows={3}
+                      value={selectedPayment.notes || ''}
+                      onChange={(e) => setSelectedPayment(prev => ({ ...prev, notes: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-outline">
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Sauvegarder
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

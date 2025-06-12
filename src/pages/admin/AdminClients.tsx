@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Plus, Search, Eye, Edit, Trash2, ChevronLeft, ChevronRight, 
-  Mail, Phone, Calendar
+  Mail, Phone, Calendar, MessageSquare, X
 } from 'lucide-react';
 import { clients as initialClients } from '../../data/clients';
 import { formatDate } from '../../utils/formatters';
@@ -12,6 +12,10 @@ const AdminClients = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les clients
@@ -40,11 +44,40 @@ const AdminClients = () => {
     alert('Client ajouté avec succès !');
   };
 
+  const handleViewClient = (client: any) => {
+    setSelectedClient(client);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditClient = (client: any) => {
+    setSelectedClient(client);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateClient = (updatedClient: any) => {
+    setClients(prev => prev.map(c => 
+      c.id === updatedClient.id ? updatedClient : c
+    ));
+    setIsEditModalOpen(false);
+    alert('Client modifié avec succès !');
+  };
+
   const handleDeleteClient = (clientId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
       setClients(prev => prev.filter(c => c.id !== clientId));
       alert('Client supprimé avec succès !');
     }
+  };
+
+  const handleSendMessage = (client: any) => {
+    setSelectedClient(client);
+    setIsMessageModalOpen(true);
+  };
+
+  const sendMessage = (message: string) => {
+    console.log(`Message envoyé à ${selectedClient.firstName} ${selectedClient.lastName}: ${message}`);
+    alert('Message envoyé avec succès !');
+    setIsMessageModalOpen(false);
   };
   
   return (
@@ -147,11 +180,26 @@ const AdminClients = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex justify-center space-x-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-800" title="Voir">
+                      <button 
+                        onClick={() => handleViewClient(client)}
+                        className="p-1 text-blue-600 hover:text-blue-800" 
+                        title="Voir"
+                      >
                         <Eye size={18} />
                       </button>
-                      <button className="p-1 text-yellow-600 hover:text-yellow-800" title="Modifier">
+                      <button 
+                        onClick={() => handleEditClient(client)}
+                        className="p-1 text-yellow-600 hover:text-yellow-800" 
+                        title="Modifier"
+                      >
                         <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleSendMessage(client)}
+                        className="p-1 text-green-600 hover:text-green-800" 
+                        title="Envoyer un message"
+                      >
+                        <MessageSquare size={18} />
                       </button>
                       <button 
                         onClick={() => handleDeleteClient(client.id)}
@@ -237,6 +285,157 @@ const AdminClients = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddClient}
       />
+
+      {/* View Client Modal */}
+      {isViewModalOpen && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Détails du client</h2>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Informations personnelles</h3>
+                  <p><strong>Nom:</strong> {selectedClient.firstName} {selectedClient.lastName}</p>
+                  <p><strong>Email:</strong> {selectedClient.email}</p>
+                  <p><strong>Téléphone:</strong> {selectedClient.phone}</p>
+                  <p><strong>Date d'inscription:</strong> {formatDate(selectedClient.createdAt)}</p>
+                </div>
+                {selectedClient.preferences && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Préférences</h3>
+                    <p><strong>Types de biens:</strong> {selectedClient.preferences.propertyTypes.join(', ')}</p>
+                    <p><strong>Budget:</strong> {selectedClient.preferences.budget.min.toLocaleString()} € - {selectedClient.preferences.budget.max.toLocaleString()} €</p>
+                    <p><strong>Zones:</strong> {selectedClient.preferences.locations.join(', ')}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Client Modal */}
+      {isEditModalOpen && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Modifier le client</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdateClient(selectedClient);
+              }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                    <input
+                      type="text"
+                      value={selectedClient.firstName}
+                      onChange={(e) => setSelectedClient(prev => ({ ...prev, firstName: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                    <input
+                      type="text"
+                      value={selectedClient.lastName}
+                      onChange={(e) => setSelectedClient(prev => ({ ...prev, lastName: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={selectedClient.email}
+                      onChange={(e) => setSelectedClient(prev => ({ ...prev, email: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                    <input
+                      type="tel"
+                      value={selectedClient.phone}
+                      onChange={(e) => setSelectedClient(prev => ({ ...prev, phone: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-outline">
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Sauvegarder
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Message Modal */}
+      {isMessageModalOpen && selectedClient && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Envoyer un message</h2>
+              <button onClick={() => setIsMessageModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="mb-4">À: {selectedClient.firstName} {selectedClient.lastName}</p>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target as HTMLFormElement);
+                sendMessage(formData.get('message') as string);
+              }}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Objet</label>
+                  <input
+                    type="text"
+                    name="subject"
+                    className="input"
+                    placeholder="Objet du message"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                  <textarea
+                    name="message"
+                    rows={4}
+                    className="input"
+                    placeholder="Votre message..."
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-4">
+                  <button type="button" onClick={() => setIsMessageModalOpen(false)} className="btn-outline">
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Envoyer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

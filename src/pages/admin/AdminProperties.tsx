@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Plus, Search, Filter, Eye, Edit, Trash2, 
-  ChevronLeft, ChevronRight 
+  ChevronLeft, ChevronRight, Star, StarOff
 } from 'lucide-react';
 import { properties as initialProperties } from '../../data/properties';
 import { formatPrice } from '../../utils/formatters';
@@ -13,6 +13,9 @@ const AdminProperties = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les biens
@@ -41,11 +44,35 @@ const AdminProperties = () => {
     alert('Bien immobilier ajouté avec succès !');
   };
 
+  const handleViewProperty = (property: any) => {
+    setSelectedProperty(property);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditProperty = (property: any) => {
+    setSelectedProperty(property);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProperty = (updatedProperty: any) => {
+    setProperties(prev => prev.map(p => 
+      p.id === updatedProperty.id ? updatedProperty : p
+    ));
+    setIsEditModalOpen(false);
+    alert('Bien modifié avec succès !');
+  };
+
   const handleDeleteProperty = (propertyId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce bien ?')) {
       setProperties(prev => prev.filter(p => p.id !== propertyId));
       alert('Bien supprimé avec succès !');
     }
+  };
+
+  const toggleFeatured = (propertyId: string) => {
+    setProperties(prev => prev.map(p => 
+      p.id === propertyId ? { ...p, featured: !p.featured } : p
+    ));
   };
   
   return (
@@ -154,11 +181,26 @@ const AdminProperties = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex justify-center space-x-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-800" title="Voir">
+                      <button 
+                        onClick={() => handleViewProperty(property)}
+                        className="p-1 text-blue-600 hover:text-blue-800" 
+                        title="Voir"
+                      >
                         <Eye size={18} />
                       </button>
-                      <button className="p-1 text-yellow-600 hover:text-yellow-800" title="Modifier">
+                      <button 
+                        onClick={() => handleEditProperty(property)}
+                        className="p-1 text-yellow-600 hover:text-yellow-800" 
+                        title="Modifier"
+                      >
                         <Edit size={18} />
+                      </button>
+                      <button 
+                        onClick={() => toggleFeatured(property.id)}
+                        className={`p-1 ${property.featured ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-600`}
+                        title={property.featured ? 'Retirer de la une' : 'Mettre à la une'}
+                      >
+                        {property.featured ? <Star size={18} fill="currentColor" /> : <StarOff size={18} />}
                       </button>
                       <button 
                         onClick={() => handleDeleteProperty(property.id)}
@@ -222,10 +264,6 @@ const AdminProperties = () => {
                 );
               })}
               
-              {totalPages > 5 && (
-                <span className="flex items-center justify-center w-8 h-8 text-sm text-gray-500">...</span>
-              )}
-              
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
@@ -248,6 +286,117 @@ const AdminProperties = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddProperty}
       />
+
+      {/* View Property Modal */}
+      {isViewModalOpen && selectedProperty && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Détails du bien</h2>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <img src={selectedProperty.images[0]} alt={selectedProperty.title} className="w-full h-64 object-cover rounded-lg" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold mb-4">{selectedProperty.title}</h3>
+                  <p className="text-gray-600 mb-4">{selectedProperty.description}</p>
+                  <div className="space-y-2">
+                    <p><strong>Type:</strong> {selectedProperty.type}</p>
+                    <p><strong>Statut:</strong> {selectedProperty.status}</p>
+                    <p><strong>Prix:</strong> {formatPrice(selectedProperty.price)}</p>
+                    <p><strong>Surface:</strong> {selectedProperty.surface} m²</p>
+                    <p><strong>Pièces:</strong> {selectedProperty.rooms}</p>
+                    <p><strong>Chambres:</strong> {selectedProperty.bedrooms}</p>
+                    <p><strong>Salles de bain:</strong> {selectedProperty.bathrooms}</p>
+                    <p><strong>Adresse:</strong> {selectedProperty.address.street}, {selectedProperty.address.city}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Property Modal */}
+      {isEditModalOpen && selectedProperty && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Modifier le bien</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdateProperty(selectedProperty);
+              }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                    <input
+                      type="text"
+                      value={selectedProperty.title}
+                      onChange={(e) => setSelectedProperty(prev => ({ ...prev, title: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Prix (XOF)</label>
+                    <input
+                      type="number"
+                      value={selectedProperty.price}
+                      onChange={(e) => setSelectedProperty(prev => ({ ...prev, price: parseInt(e.target.value) }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Surface (m²)</label>
+                    <input
+                      type="number"
+                      value={selectedProperty.surface}
+                      onChange={(e) => setSelectedProperty(prev => ({ ...prev, surface: parseInt(e.target.value) }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Pièces</label>
+                    <input
+                      type="number"
+                      value={selectedProperty.rooms}
+                      onChange={(e) => setSelectedProperty(prev => ({ ...prev, rooms: parseInt(e.target.value) }))}
+                      className="input"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea
+                      rows={4}
+                      value={selectedProperty.description}
+                      onChange={(e) => setSelectedProperty(prev => ({ ...prev, description: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-outline">
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Sauvegarder
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

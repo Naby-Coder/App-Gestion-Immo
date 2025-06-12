@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   Plus, Search, Filter, Eye, Edit, Trash2, Download,
-  ChevronLeft, ChevronRight, Calendar, User, Building
+  ChevronLeft, ChevronRight, Calendar, User, Building, X, FileText
 } from 'lucide-react';
 import { formatPrice, formatDate } from '../../utils/formatters';
 import AddContractModal from '../../components/admin/AddContractModal';
@@ -16,6 +16,7 @@ interface Contract {
   amount: number;
   createdAt: string;
   signedAt?: string;
+  notes?: string;
 }
 
 const initialContracts: Contract[] = [
@@ -80,6 +81,9 @@ const AdminContracts = () => {
   const [filterType, setFilterType] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const itemsPerPage = 8;
   
   // Filtrer les contrats
@@ -127,11 +131,44 @@ const AdminContracts = () => {
     alert('Contrat créé avec succès !');
   };
 
+  const handleViewContract = (contract: any) => {
+    setSelectedContract(contract);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditContract = (contract: any) => {
+    setSelectedContract(contract);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateContract = (updatedContract: any) => {
+    setContracts(prev => prev.map(c => 
+      c.id === updatedContract.id ? updatedContract : c
+    ));
+    setIsEditModalOpen(false);
+    alert('Contrat modifié avec succès !');
+  };
+
   const handleDeleteContract = (contractId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce contrat ?')) {
       setContracts(prev => prev.filter(c => c.id !== contractId));
       alert('Contrat supprimé avec succès !');
     }
+  };
+
+  const handleDownloadContract = (contract: any) => {
+    alert(`Téléchargement du contrat ${contract.id} en cours...`);
+  };
+
+  const handleSignContract = (contractId: string) => {
+    setContracts(prev => prev.map(c => 
+      c.id === contractId ? { 
+        ...c, 
+        status: 'Signé' as const, 
+        signedAt: new Date().toISOString() 
+      } : c
+    ));
+    alert('Contrat signé avec succès !');
   };
   
   return (
@@ -275,13 +312,25 @@ const AdminContracts = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex justify-center space-x-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-800" title="Voir">
+                      <button 
+                        onClick={() => handleViewContract(contract)}
+                        className="p-1 text-blue-600 hover:text-blue-800" 
+                        title="Voir"
+                      >
                         <Eye size={18} />
                       </button>
-                      <button className="p-1 text-yellow-600 hover:text-yellow-800" title="Modifier">
+                      <button 
+                        onClick={() => handleEditContract(contract)}
+                        className="p-1 text-yellow-600 hover:text-yellow-800" 
+                        title="Modifier"
+                      >
                         <Edit size={18} />
                       </button>
-                      <button className="p-1 text-green-600 hover:text-green-800" title="Télécharger">
+                      <button 
+                        onClick={() => handleDownloadContract(contract)}
+                        className="p-1 text-green-600 hover:text-green-800" 
+                        title="Télécharger"
+                      >
                         <Download size={18} />
                       </button>
                       <button 
@@ -368,6 +417,176 @@ const AdminContracts = () => {
         onClose={() => setIsAddModalOpen(false)}
         onAdd={handleAddContract}
       />
+
+      {/* View Contract Modal */}
+      {isViewModalOpen && selectedContract && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Détails du contrat</h2>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Type</h3>
+                    <p className="text-lg font-semibold">{selectedContract.type}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Statut</h3>
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(selectedContract.status)}`}>
+                      {selectedContract.status}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Bien concerné</h3>
+                  <p className="text-lg">{selectedContract.propertyTitle}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Client</h3>
+                    <p className="text-lg">{selectedContract.clientName}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Agent</h3>
+                    <p className="text-lg">{selectedContract.agentName}</p>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Montant</h3>
+                  <p className="text-2xl font-bold text-primary-600">
+                    {formatPrice(selectedContract.amount)}
+                    {selectedContract.type === 'Location' && <span className="text-sm font-normal ml-1">/mois</span>}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Date de création</h3>
+                    <p>{formatDate(selectedContract.createdAt)}</p>
+                  </div>
+                  {selectedContract.signedAt && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-500">Date de signature</h3>
+                      <p>{formatDate(selectedContract.signedAt)}</p>
+                    </div>
+                  )}
+                </div>
+                {selectedContract.notes && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Notes</h3>
+                    <p className="bg-gray-50 p-3 rounded-md">{selectedContract.notes}</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end space-x-4 mt-6">
+                {selectedContract.status === 'En attente' && (
+                  <button 
+                    onClick={() => {
+                      handleSignContract(selectedContract.id);
+                      setIsViewModalOpen(false);
+                    }}
+                    className="btn-primary"
+                  >
+                    Marquer comme signé
+                  </button>
+                )}
+                <button 
+                  onClick={() => handleDownloadContract(selectedContract)}
+                  className="btn-outline"
+                >
+                  Télécharger PDF
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Contract Modal */}
+      {isEditModalOpen && selectedContract && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Modifier le contrat</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdateContract(selectedContract);
+              }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                      value={selectedContract.type}
+                      onChange={(e) => setSelectedContract(prev => ({ ...prev, type: e.target.value }))}
+                      className="input"
+                    >
+                      <option value="Vente">Vente</option>
+                      <option value="Location">Location</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <select
+                      value={selectedContract.status}
+                      onChange={(e) => setSelectedContract(prev => ({ ...prev, status: e.target.value }))}
+                      className="input"
+                    >
+                      <option value="Brouillon">Brouillon</option>
+                      <option value="En attente">En attente</option>
+                      <option value="Signé">Signé</option>
+                      <option value="Annulé">Annulé</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+                    <input
+                      type="text"
+                      value={selectedContract.clientName}
+                      onChange={(e) => setSelectedContract(prev => ({ ...prev, clientName: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Montant (XOF)</label>
+                    <input
+                      type="number"
+                      value={selectedContract.amount}
+                      onChange={(e) => setSelectedContract(prev => ({ ...prev, amount: parseInt(e.target.value) }))}
+                      className="input"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea
+                      rows={3}
+                      value={selectedContract.notes || ''}
+                      onChange={(e) => setSelectedContract(prev => ({ ...prev, notes: e.target.value }))}
+                      className="input"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-4 mt-6">
+                  <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-outline">
+                    Annuler
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    Sauvegarder
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
