@@ -65,7 +65,7 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
               <User size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-medium">Jean Dupont</p>
+              <p className="text-white font-medium">Arame Diop</p>
               <p className="text-primary-200 text-sm">Client</p>
             </div>
           </div>

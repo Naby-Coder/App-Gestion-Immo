@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Clock, MapPin, User, Phone, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Phone, CheckCircle, XCircle, Edit, X } from 'lucide-react';
 import { appointments } from '../../data/clientData';
 import { properties } from '../../data/properties';
 import { agents } from '../../data/agents';
@@ -7,6 +7,8 @@ import { formatDate } from '../../utils/formatters';
 
 const ClientAppointments = () => {
   const [appointmentsList, setAppointmentsList] = useState(appointments);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -46,12 +48,33 @@ const ClientAppointments = () => {
     return agents.find(a => a.id === agentId);
   };
 
-  const cancelAppointment = (appointmentId: string) => {
+  const handleViewAppointment = (appointment: any) => {
+    setSelectedAppointment(appointment);
+    setIsViewModalOpen(true);
+  };
+
+  const confirmAppointment = (appointmentId: string) => {
     setAppointmentsList(prev =>
       prev.map(apt =>
-        apt.id === appointmentId ? { ...apt, status: 'Annulé' as const } : apt
+        apt.id === appointmentId ? { ...apt, status: 'Confirmé' as const } : apt
       )
     );
+    alert('Rendez-vous confirmé avec succès !');
+  };
+
+  const cancelAppointment = (appointmentId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+      setAppointmentsList(prev =>
+        prev.map(apt =>
+          apt.id === appointmentId ? { ...apt, status: 'Annulé' as const } : apt
+        )
+      );
+      alert('Rendez-vous annulé');
+    }
+  };
+
+  const rescheduleAppointment = (appointment: any) => {
+    alert(`Demande de report envoyée pour le rendez-vous du ${formatDate(appointment.date + 'T00:00:00Z')}`);
   };
 
   return (
@@ -168,20 +191,33 @@ const ClientAppointments = () => {
 
                     {/* Actions */}
                     <div className="flex flex-col space-y-2 lg:ml-6">
+                      <button 
+                        onClick={() => handleViewAppointment(appointment)}
+                        className="btn-outline text-sm flex items-center justify-center"
+                      >
+                        <User size={14} className="mr-1" />
+                        Voir détails
+                      </button>
+                      
                       {appointment.status === 'Programmé' && (
                         <>
-                          <button className="btn-primary text-sm">
+                          <button 
+                            onClick={() => confirmAppointment(appointment.id)}
+                            className="btn-primary text-sm"
+                          >
                             Confirmer
                           </button>
                           <button 
-                            onClick={() => cancelAppointment(appointment.id)}
-                            className="btn-outline text-sm text-red-600 border-red-300 hover:bg-red-50"
+                            onClick={() => rescheduleAppointment(appointment)}
+                            className="btn-outline text-sm flex items-center justify-center"
                           >
-                            Annuler
+                            <Edit size={14} className="mr-1" />
+                            Reporter
                           </button>
                         </>
                       )}
-                      {appointment.status === 'Confirmé' && (
+                      
+                      {(appointment.status === 'Programmé' || appointment.status === 'Confirmé') && (
                         <button 
                           onClick={() => cancelAppointment(appointment.id)}
                           className="btn-outline text-sm text-red-600 border-red-300 hover:bg-red-50"
@@ -195,6 +231,84 @@ const ClientAppointments = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* View Appointment Modal */}
+      {isViewModalOpen && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Détails du rendez-vous</h2>
+              <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Informations générales</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Date</p>
+                      <p className="font-medium">{formatDate(selectedAppointment.date + 'T00:00:00Z')}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Heure</p>
+                      <p className="font-medium">{selectedAppointment.time}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Bien concerné</h3>
+                  <p className="text-gray-700">{getPropertyInfo(selectedAppointment.propertyId)?.title}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Agent responsable</h3>
+                  <p className="text-gray-700">
+                    {getAgentInfo(selectedAppointment.agentId)?.firstName} {getAgentInfo(selectedAppointment.agentId)?.lastName}
+                  </p>
+                </div>
+                
+                {selectedAppointment.notes && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Notes</h3>
+                    <p className="bg-gray-50 p-4 rounded-md text-gray-700">{selectedAppointment.notes}</p>
+                  </div>
+                )}
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Statut</h3>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(selectedAppointment.status)}`}>
+                    {getStatusIcon(selectedAppointment.status)}
+                    <span className="ml-1">{selectedAppointment.status}</span>
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-4 mt-6">
+                {selectedAppointment.status === 'Programmé' && (
+                  <button 
+                    onClick={() => {
+                      confirmAppointment(selectedAppointment.id);
+                      setIsViewModalOpen(false);
+                    }}
+                    className="btn-primary"
+                  >
+                    Confirmer le rendez-vous
+                  </button>
+                )}
+                <button 
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="btn-outline"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -4,9 +4,9 @@ import { User, Mail, Phone, MapPin, Edit, Save, X } from 'lucide-react';
 const ClientProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState({
-    firstName: 'Jean',
-    lastName: 'Dupont',
-    email: 'jean.dupont@email.com',
+    firstName: 'Arame',
+    lastName: 'Diop',
+    email: 'arame.diop@email.com',
     phone: '+221 77 123 45 67',
     address: '123 Rue de la Paix, Dakar',
     preferences: {
@@ -22,6 +22,7 @@ const ClientProfile = () => {
   const handleSave = () => {
     // Ici on sauvegarderait les données
     setIsEditing(false);
+    alert('Profil mis à jour avec succès !');
   };
 
   const handleCancel = () => {
@@ -279,6 +280,29 @@ const ClientProfile = () => {
                   Changer la photo
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistiques</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Biens favoris</span>
+                <span className="font-medium">3</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Demandes envoyées</span>
+                <span className="font-medium">3</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Visites programmées</span>
+                <span className="font-medium">2</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Messages reçus</span>
+                <span className="font-medium">3</span>
+              </div>
             </div>
           </div>
         </div>

@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { MessageSquare, Mail, MailOpen, Reply, Trash2 } from 'lucide-react';
+import { MessageSquare, Mail, MailOpen, Reply, Trash2, Send, X } from 'lucide-react';
 import { messages } from '../../data/clientData';
 import { formatDate } from '../../utils/formatters';
 
 const ClientMessages = () => {
   const [messagesList, setMessagesList] = useState(messages);
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [replySubject, setReplySubject] = useState('');
 
   const markAsRead = (messageId: string) => {
     setMessagesList(prev => 
@@ -16,10 +19,42 @@ const ClientMessages = () => {
   };
 
   const deleteMessage = (messageId: string) => {
-    setMessagesList(prev => prev.filter(msg => msg.id !== messageId));
-    if (selectedMessage === messageId) {
-      setSelectedMessage(null);
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+      setMessagesList(prev => prev.filter(msg => msg.id !== messageId));
+      if (selectedMessage === messageId) {
+        setSelectedMessage(null);
+      }
     }
+  };
+
+  const handleReply = (message: any) => {
+    setReplySubject(`Re: ${message.subject}`);
+    setReplyContent('');
+    setIsReplyModalOpen(true);
+  };
+
+  const sendReply = () => {
+    if (!replyContent.trim()) {
+      alert('Veuillez saisir un message');
+      return;
+    }
+
+    // Simuler l'envoi du message
+    const newMessage = {
+      id: Date.now().toString(),
+      senderId: 'client-1',
+      receiverId: 'agent-1',
+      subject: replySubject,
+      content: replyContent,
+      read: true,
+      createdAt: new Date().toISOString()
+    };
+
+    setMessagesList(prev => [newMessage, ...prev]);
+    setIsReplyModalOpen(false);
+    setReplyContent('');
+    setReplySubject('');
+    alert('Message envoyé avec succès !');
   };
 
   const unreadCount = messagesList.filter(msg => !msg.read).length;
@@ -111,6 +146,7 @@ const ClientMessages = () => {
                   </div>
                   <div className="flex space-x-2">
                     <button 
+                      onClick={() => handleReply(selectedMsg)}
                       className="p-2 text-gray-400 hover:text-primary-600 rounded-md hover:bg-gray-100"
                       title="Répondre"
                     >
@@ -135,7 +171,10 @@ const ClientMessages = () => {
                 </div>
                 
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <button className="btn-primary">
+                  <button 
+                    onClick={() => handleReply(selectedMsg)}
+                    className="btn-primary"
+                  >
                     <Reply size={16} className="mr-2" />
                     Répondre
                   </button>
@@ -155,6 +194,64 @@ const ClientMessages = () => {
           )}
         </div>
       </div>
+
+      {/* Reply Modal */}
+      {isReplyModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-semibold">Répondre au message</h2>
+              <button 
+                onClick={() => setIsReplyModalOpen(false)} 
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Objet
+                </label>
+                <input
+                  type="text"
+                  value={replySubject}
+                  onChange={(e) => setReplySubject(e.target.value)}
+                  className="input"
+                  placeholder="Objet du message"
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message
+                </label>
+                <textarea
+                  rows={6}
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  className="input"
+                  placeholder="Tapez votre réponse ici..."
+                />
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button 
+                  onClick={() => setIsReplyModalOpen(false)}
+                  className="btn-outline"
+                >
+                  Annuler
+                </button>
+                <button 
+                  onClick={sendReply}
+                  className="btn-primary flex items-center"
+                >
+                  <Send size={16} className="mr-2" />
+                  Envoyer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Trash2, Eye } from 'lucide-react';
+import { Heart, Trash2, Eye, MessageSquare, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { favorites } from '../../data/clientData';
 import { properties } from '../../data/properties';
@@ -14,7 +14,17 @@ const ClientFavorites = () => {
   }).filter(Boolean);
 
   const removeFavorite = (favoriteId: string) => {
-    setFavoritesList(prev => prev.filter(fav => fav.id !== favoriteId));
+    if (confirm('Êtes-vous sûr de vouloir retirer ce bien de vos favoris ?')) {
+      setFavoritesList(prev => prev.filter(fav => fav.id !== favoriteId));
+    }
+  };
+
+  const requestInfo = (property: any) => {
+    alert(`Demande d'information envoyée pour: ${property.title}`);
+  };
+
+  const scheduleVisit = (property: any) => {
+    alert(`Demande de visite programmée pour: ${property.title}`);
   };
 
   return (
@@ -90,21 +100,40 @@ const ClientFavorites = () => {
                   <span>{property.bedrooms} ch.</span>
                 </div>
 
-                <div className="flex space-x-2">
-                  <Link 
-                    to={`/biens/${property.id}`}
-                    className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-                  >
-                    <Eye size={16} className="mr-2" />
-                    Voir le bien
-                  </Link>
-                  <button
-                    onClick={() => removeFavorite(property.favoriteId)}
-                    className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
-                    title="Supprimer"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <Link 
+                      to={`/biens/${property.id}`}
+                      className="flex-1 flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors text-sm"
+                    >
+                      <Eye size={14} className="mr-1" />
+                      Voir le bien
+                    </Link>
+                    <button
+                      onClick={() => removeFavorite(property.favoriteId)}
+                      className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
+                      title="Supprimer"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => requestInfo(property)}
+                      className="flex-1 flex items-center justify-center px-3 py-2 border border-primary-300 text-primary-600 rounded-md hover:bg-primary-50 transition-colors text-sm"
+                    >
+                      <MessageSquare size={14} className="mr-1" />
+                      Demander info
+                    </button>
+                    <button
+                      onClick={() => scheduleVisit(property)}
+                      className="flex-1 flex items-center justify-center px-3 py-2 border border-secondary-300 text-secondary-600 rounded-md hover:bg-secondary-50 transition-colors text-sm"
+                    >
+                      <Calendar size={14} className="mr-1" />
+                      Programmer visite
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
