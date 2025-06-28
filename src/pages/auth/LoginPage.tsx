@@ -1,16 +1,33 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const LoginPage = () => {
-  const { signIn, loading: authLoading } = useAuth();
+  const { signIn, loading: authLoading, user, profile } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Redirection automatique si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      console.log('User already logged in, redirecting...', profile.role);
+      
+      const dashboardRoutes = {
+        admin: '/admin',
+        agent: '/admin',
+        client: '/espace-client'
+      };
+      
+      const targetRoute = dashboardRoutes[profile.role] || '/';
+      navigate(targetRoute, { replace: true });
+    }
+  }, [user, profile, authLoading, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,14 +46,15 @@ const LoginPage = () => {
       const result = await signIn(email, password);
       console.log('Sign in result:', result);
       
-      // La redirection sera gérée automatiquement par l'AuthProvider
-      // Afficher un message de succès temporaire
-      if (result.session) {
+      if (result.session && result.user) {
         setError('');
-        // Un petit délai pour montrer que la connexion est réussie
+        console.log('Login successful, waiting for profile...');
+        
+        // Attendre un peu pour que le profil soit chargé
         setTimeout(() => {
-          // La redirection se fera automatiquement
-        }, 100);
+          // La redirection sera gérée par useEffect
+          window.location.reload(); // Force reload pour s'assurer que tout est à jour
+        }, 1000);
       }
       
     } catch (err: any) {
@@ -57,7 +75,6 @@ const LoginPage = () => {
       }
       
       setError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -110,7 +127,7 @@ const LoginPage = () => {
             <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-                <p className="text-sm text-blue-700">Connexion en cours... Redirection automatique vers votre espace.</p>
+                <p className="text-sm text-blue-700">Connexion en cours... Redirection vers votre espace.</p>
               </div>
             </div>
           )}

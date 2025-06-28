@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
-  const { signUp, loading: authLoading } = useAuth();
+  const { signUp, loading: authLoading, user, profile } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -17,6 +18,22 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Redirection automatique si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (!authLoading && user && profile) {
+      console.log('User already logged in, redirecting...', profile.role);
+      
+      const dashboardRoutes = {
+        admin: '/admin',
+        agent: '/admin',
+        client: '/espace-client'
+      };
+      
+      const targetRoute = dashboardRoutes[profile.role] || '/';
+      navigate(targetRoute, { replace: true });
+    }
+  }, [user, profile, authLoading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -62,13 +79,18 @@ const RegisterPage = () => {
       if (result.user && !result.session) {
         // User needs to confirm email
         setSuccess('Un email de confirmation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation avant de vous connecter.');
+        setIsSubmitting(false);
         return;
       }
 
       if (result.session) {
         // User is immediately signed in
         setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
-        // La redirection sera gérée automatiquement par l'AuthProvider
+        
+        // Attendre un peu pour que le profil soit chargé
+        setTimeout(() => {
+          window.location.reload(); // Force reload pour s'assurer que tout est à jour
+        }, 1000);
       }
       
     } catch (err: any) {
@@ -88,7 +110,6 @@ const RegisterPage = () => {
       }
       
       setError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -150,7 +171,7 @@ const RegisterPage = () => {
             <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-                <p className="text-sm text-blue-700">Création du compte... Redirection automatique vers votre espace.</p>
+                <p className="text-sm text-blue-700">Création du compte... Redirection vers votre espace.</p>
               </div>
             </div>
           )}
