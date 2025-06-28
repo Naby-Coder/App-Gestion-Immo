@@ -36,6 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Fetching profile for user:', userId);
       
+      if (!supabase) {
+        console.log('No supabase, skipping profile fetch');
+        return null;
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -66,6 +71,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const createProfile = async (user: User, userData: any): Promise<UserProfile | null> => {
     try {
       console.log('Creating profile for user:', user.id, userData);
+      
+      if (!supabase) {
+        console.log('No supabase, skipping profile creation');
+        return null;
+      }
       
       const profileData = {
         id: user.id,
@@ -106,7 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Vérifier si Supabase est configuré
         if (!supabase) {
           console.warn('Supabase not configured, using mock auth');
-          setLoading(false);
+          if (mounted) {
+            setLoading(false);
+          }
           return;
         }
 
@@ -141,7 +153,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initializeAuth();
+    // Délai court pour éviter le flash de chargement
+    const timer = setTimeout(() => {
+      initializeAuth();
+    }, 100);
 
     // Seulement s'abonner aux changements si Supabase est configuré
     let subscription: any = null;
@@ -179,6 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(timer);
       if (subscription) {
         subscription.unsubscribe();
       }

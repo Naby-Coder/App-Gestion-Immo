@@ -87,7 +87,7 @@ const LoginPage = () => {
     }
   };
 
-  // Show loading spinner ONLY during initial auth check AND if user is already logged in
+  // Ne montrer le spinner de chargement QUE si l'utilisateur est déjà connecté
   if (authLoading && user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
