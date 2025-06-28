@@ -3,11 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+let supabase: any = null;
+
+// Vérifier si les variables d'environnement sont définies
+if (supabaseUrl && supabaseAnonKey) {
+  try {
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+    console.log('Supabase client initialized successfully');
+  } catch (error) {
+    console.error('Error initializing Supabase client:', error);
+    supabase = null;
+  }
+} else {
+  console.warn('Supabase environment variables not found. Running in mock mode.');
+  console.warn('VITE_SUPABASE_URL:', !!supabaseUrl);
+  console.warn('VITE_SUPABASE_ANON_KEY:', !!supabaseAnonKey);
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export { supabase };
 
 // Types pour TypeScript
 export type Database = {

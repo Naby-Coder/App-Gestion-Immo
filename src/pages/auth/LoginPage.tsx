@@ -48,13 +48,21 @@ const LoginPage = () => {
       
       if (result.session && result.user) {
         setError('');
-        console.log('Login successful, waiting for profile...');
+        console.log('Login successful, redirecting...');
         
         // Attendre un peu pour que le profil soit chargé
         setTimeout(() => {
           // La redirection sera gérée par useEffect
-          window.location.reload(); // Force reload pour s'assurer que tout est à jour
-        }, 1000);
+          const role = result.user.user_metadata?.role || 'client';
+          const dashboardRoutes = {
+            admin: '/admin',
+            agent: '/admin',
+            client: '/espace-client'
+          };
+          
+          const targetRoute = dashboardRoutes[role] || '/espace-client';
+          navigate(targetRoute, { replace: true });
+        }, 500);
       }
       
     } catch (err: any) {
@@ -236,13 +244,18 @@ const LoginPage = () => {
               <p className="mb-2 font-medium">Pour tester l'application :</p>
               <div className="space-y-2 text-xs bg-gray-50 p-3 rounded-md">
                 <div>
-                  <p className="font-medium text-gray-700">1. Créez un compte via "Inscription"</p>
-                  <p className="text-gray-600">• Choisissez le type : Client, Agent ou Admin</p>
+                  <p className="font-medium text-gray-700">🎯 Mode Démo Activé</p>
+                  <p className="text-gray-600">• Utilisez n'importe quel email et mot de passe</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-700">2. Après connexion, redirection automatique :</p>
-                  <p className="text-gray-600">• <span className="font-medium">Client</span> → Espace Client</p>
-                  <p className="text-gray-600">• <span className="font-medium">Agent/Admin</span> → Interface d'administration</p>
+                  <p className="font-medium text-gray-700">📧 Exemples d'emails :</p>
+                  <p className="text-gray-600">• <span className="font-medium">admin@test.com</span> → Interface Admin</p>
+                  <p className="text-gray-600">• <span className="font-medium">agent@test.com</span> → Interface Agent</p>
+                  <p className="text-gray-600">• <span className="font-medium">client@test.com</span> → Espace Client</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-700">🔑 Mot de passe :</p>
+                  <p className="text-gray-600">• N'importe quel mot de passe (ex: 123456)</p>
                 </div>
               </div>
             </div>

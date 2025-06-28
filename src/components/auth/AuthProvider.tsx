@@ -103,6 +103,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('Initializing auth...');
         
+        // Vérifier si Supabase est configuré
+        if (!supabase) {
+          console.warn('Supabase not configured, using mock auth');
+          setLoading(false);
+          return;
+        }
+
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -136,42 +143,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
+    // Seulement s'abonner aux changements si Supabase est configuré
+    let subscription: any = null;
+    
+    if (supabase) {
+      const {
+        data: { subscription: authSubscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return;
 
-      console.log('Auth state changed:', event, session?.user?.email);
-      
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        let profile = await fetchProfile(session.user.id);
+        console.log('Auth state changed:', event, session?.user?.email);
         
-        // If no profile exists and this is a sign in, try to create one
-        if (!profile && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          profile = await createProfile(session.user, session.user.user_metadata || {});
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          let profile = await fetchProfile(session.user.id);
+          
+          // If no profile exists and this is a sign in, try to create one
+          if (!profile && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+            profile = await createProfile(session.user, session.user.user_metadata || {});
+          }
+        } else {
+          setProfile(null);
         }
-      } else {
-        setProfile(null);
-      }
+        
+        // Only set loading to false after we've handled the profile
+        if (event !== 'TOKEN_REFRESHED') {
+          setLoading(false);
+        }
+      });
       
-      // Only set loading to false after we've handled the profile
-      if (event !== 'TOKEN_REFRESHED') {
-        setLoading(false);
-      }
-    });
+      subscription = authSubscription;
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
       console.log('Signing up user:', email, userData);
+      
+      // Si Supabase n'est pas configuré, simuler l'inscription
+      if (!supabase) {
+        console.log('Mock signup - creating mock user');
+        const mockUser = {
+          id: Date.now().toString(),
+          email,
+          user_metadata: userData
+        };
+        
+        const mockProfile = {
+          id: mockUser.id,
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          role: userData.role || 'client',
+          phone: userData.phone || null,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Simuler un délai
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        setUser(mockUser as any);
+        setProfile(mockProfile);
+        
+        return { 
+          user: mockUser, 
+          session: { user: mockUser, access_token: 'mock-token' } 
+        };
+      }
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -203,6 +251,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Signing in user:', email);
       
+      // Si Supabase n'est pas configuré, simuler la connexion
+      if (!supabase) {
+        console.log('Mock signin');
+        
+        // Simuler différents utilisateurs selon l'email
+        let role = 'client';
+        if (email.includes('admin')) role = 'admin';
+        if (email.includes('agent')) role = 'agent';
+        
+        const mockUser = {
+          id: Date.now().toString(),
+          email,
+          user_metadata: { role }
+        };
+        
+        const mockProfile = {
+          id: mockUser.id,
+          first_name: email.split('@')[0].split('.')[0] || 'Utilisateur',
+          last_name: email.split('@')[0].split('.')[1] || 'Test',
+          role: role as 'admin' | 'agent' | 'client',
+          phone: null,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Simuler un délai
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        setUser(mockUser as any);
+        setProfile(mockProfile);
+        
+        return { 
+          user: mockUser, 
+          session: { user: mockUser, access_token: 'mock-token' } 
+        };
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -225,10 +311,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Signing out...');
       
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-        throw error;
+      if (supabase) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Sign out error:', error);
+          throw error;
+        }
       }
       
       setProfile(null);
@@ -244,6 +332,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) throw new Error('No user logged in');
 
     try {
+      if (!supabase) {
+        // Mock update
+        const updatedProfile = { ...profile, ...updates };
+        setProfile(updatedProfile);
+        return updatedProfile;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)

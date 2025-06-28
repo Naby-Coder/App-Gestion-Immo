@@ -83,13 +83,21 @@ const RegisterPage = () => {
         return;
       }
 
-      if (result.session) {
-        // User is immediately signed in
+      if (result.session || result.user) {
+        // User is immediately signed in or account created
         setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
         
         // Attendre un peu pour que le profil soit chargé
         setTimeout(() => {
-          window.location.reload(); // Force reload pour s'assurer que tout est à jour
+          const role = formData.role;
+          const dashboardRoutes = {
+            admin: '/admin',
+            agent: '/admin',
+            client: '/espace-client'
+          };
+          
+          const targetRoute = dashboardRoutes[role] || '/espace-client';
+          navigate(targetRoute, { replace: true });
         }, 1000);
       }
       
@@ -344,6 +352,22 @@ const RegisterPage = () => {
               </button>
             </div>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Mode Démo</span>
+              </div>
+            </div>
+
+            <div className="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-md">
+              <p className="font-medium text-gray-700 mb-1">🎯 Mode Démo Activé</p>
+              <p>Créez un compte avec n'importe quelles informations pour tester l'application. Votre choix de rôle déterminera l'interface à laquelle vous aurez accès.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
