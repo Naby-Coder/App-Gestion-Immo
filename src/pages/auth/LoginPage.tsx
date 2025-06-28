@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
+import { supabase } from '../../lib/supabase';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -41,7 +42,12 @@ const LoginPage = () => {
         navigate('/espace-client');
       }
     } catch (err: any) {
-      setError(err.message || 'Identifiants incorrects. Veuillez réessayer.');
+      console.error('Login error:', err);
+      if (err.message?.includes('Invalid login credentials')) {
+        setError('Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.');
+      } else {
+        setError('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
+      }
     } finally {
       setIsSubmitting(false);
     }
