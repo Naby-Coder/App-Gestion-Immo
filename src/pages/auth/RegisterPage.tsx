@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Building } from 'lucide-react';
-import type { RegisterFormData } from '../../types';
+import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<RegisterFormData>({
+  const { signUp } = useAuth();
+  const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
     role: 'client'
   });
   const [error, setError] = useState('');
@@ -32,20 +34,29 @@ const RegisterPage = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Simuler l'enregistrement
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await signUp(formData.email, formData.password, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phone: formData.phone,
+        role: formData.role
+      });
       
       // Redirection selon le rôle
-      if (formData.role === 'agent') {
+      if (formData.role === 'agent' || formData.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/espace-client');
       }
-    } catch (err) {
-      setError('Une erreur est survenue lors de l\'inscription');
+    } catch (err: any) {
+      setError(err.message || 'Une erreur est survenue lors de l\'inscription');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,6 +107,7 @@ const RegisterPage = () => {
               >
                 <option value="client">Client</option>
                 <option value="agent">Agent immobilier</option>
+                <option value="admin">Administrateur</option>
               </select>
             </div>
 
@@ -115,7 +127,7 @@ const RegisterPage = () => {
                   value={formData.firstName}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="John"
+                  placeholder="Amadou"
                 />
               </div>
             </div>
@@ -136,7 +148,7 @@ const RegisterPage = () => {
                   value={formData.lastName}
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  placeholder="Doe"
+                  placeholder="Diallo"
                 />
               </div>
             </div>
@@ -160,6 +172,21 @@ const RegisterPage = () => {
                   placeholder="vous@exemple.com"
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                Téléphone (optionnel)
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                placeholder="+221 77 123 45 67"
+              />
             </div>
 
             <div>
