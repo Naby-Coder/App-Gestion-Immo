@@ -15,20 +15,26 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, profile, loading } = useAuth();
 
+  // Afficher le spinner seulement pendant le chargement initial
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
       </div>
     );
   }
 
+  // Si pas d'utilisateur connecté, rediriger vers login
   if (!user) {
     return <Navigate to={redirectTo} replace />;
   }
 
+  // Si un rôle spécifique est requis et que l'utilisateur n'a pas ce rôle
   if (requiredRole && profile?.role !== requiredRole) {
-    // Rediriger vers le bon dashboard selon le rôle
+    // Rediriger vers le bon dashboard selon le rôle de l'utilisateur
     const dashboardRoutes = {
       admin: '/admin',
       agent: '/admin',
@@ -39,8 +45,10 @@ export function ProtectedRoute({
       return <Navigate to={dashboardRoutes[profile.role]} replace />;
     }
     
+    // Si pas de rôle défini, rediriger vers l'accueil
     return <Navigate to="/" replace />;
   }
 
+  // Tout est OK, afficher le contenu protégé
   return <>{children}</>;
 }

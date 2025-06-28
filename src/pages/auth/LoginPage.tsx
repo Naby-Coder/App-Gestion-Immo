@@ -24,7 +24,7 @@ const LoginPage = () => {
         client: '/espace-client'
       };
       
-      const targetRoute = dashboardRoutes[profile.role] || '/';
+      const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
       navigate(targetRoute, { replace: true });
     }
   }, [user, profile, authLoading, navigate]);
@@ -50,19 +50,21 @@ const LoginPage = () => {
         setError('');
         console.log('Login successful, redirecting...');
         
-        // Attendre un peu pour que le profil soit chargé
-        setTimeout(() => {
-          // La redirection sera gérée par useEffect
-          const role = result.user.user_metadata?.role || 'client';
-          const dashboardRoutes = {
-            admin: '/admin',
-            agent: '/admin',
-            client: '/espace-client'
-          };
-          
-          const targetRoute = dashboardRoutes[role] || '/espace-client';
-          navigate(targetRoute, { replace: true });
-        }, 500);
+        // Déterminer le rôle et rediriger immédiatement
+        const role = result.user.user_metadata?.role || 'client';
+        console.log('User role:', role);
+        
+        const dashboardRoutes = {
+          admin: '/admin',
+          agent: '/admin',
+          client: '/espace-client'
+        };
+        
+        const targetRoute = dashboardRoutes[role] || '/espace-client';
+        console.log('Redirecting to:', targetRoute);
+        
+        // Redirection immédiate
+        navigate(targetRoute, { replace: true });
       }
       
     } catch (err: any) {
@@ -83,12 +85,13 @@ const LoginPage = () => {
       }
       
       setError(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Ne montrer le spinner de chargement QUE si l'utilisateur est déjà connecté
-  if (authLoading && user) {
+  // Afficher le spinner SEULEMENT si on est en train de soumettre OU si l'utilisateur est connecté et en cours de redirection
+  if ((authLoading && user) || (isSubmitting && !error)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -127,15 +130,6 @@ const LoginPage = () => {
                 <div className="ml-3">
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {isSubmitting && (
-            <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-                <p className="text-sm text-blue-700">Connexion en cours... Redirection vers votre espace.</p>
               </div>
             </div>
           )}

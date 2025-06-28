@@ -294,8 +294,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         
         // Simuler un délai
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
+        // Mettre à jour l'état immédiatement
         setUser(mockUser as any);
         setProfile(mockProfile);
         
