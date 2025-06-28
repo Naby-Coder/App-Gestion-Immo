@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './components/auth/AuthProvider';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import PropertyListPage from './pages/PropertyListPage';
@@ -28,44 +30,54 @@ import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
-    <Routes>
-      {/* Routes publiques */}
-      <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} />
-        <Route path="biens" element={<PropertyListPage />} />
-        <Route path="biens/:id" element={<PropertyDetailPage />} />
-        <Route path="a-propos" element={<AboutPage />} />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="blog" element={<BlogPage />} />
-        <Route path="blog/:slug" element={<BlogArticlePage />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="inscription" element={<RegisterPage />} />
-      </Route>
+    <AuthProvider>
+      <Routes>
+        {/* Routes publiques */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="biens" element={<PropertyListPage />} />
+          <Route path="biens/:id" element={<PropertyDetailPage />} />
+          <Route path="a-propos" element={<AboutPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="blog" element={<BlogPage />} />
+          <Route path="blog/:slug" element={<BlogArticlePage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="inscription" element={<RegisterPage />} />
+        </Route>
 
-      {/* Routes client */}
-      <Route path="espace-client" element={<ClientLayout />}>
-        <Route index element={<ClientDashboard />} />
-        <Route path="favoris" element={<ClientFavorites />} />
-        <Route path="demandes" element={<ClientRequests />} />
-        <Route path="messages" element={<ClientMessages />} />
-        <Route path="rendez-vous" element={<ClientAppointments />} />
-        <Route path="profil" element={<ClientProfile />} />
-      </Route>
+        {/* Routes client protégées */}
+        <Route path="espace-client" element={
+          <ProtectedRoute requiredRole="client">
+            <ClientLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<ClientDashboard />} />
+          <Route path="favoris" element={<ClientFavorites />} />
+          <Route path="demandes" element={<ClientRequests />} />
+          <Route path="messages" element={<ClientMessages />} />
+          <Route path="rendez-vous" element={<ClientAppointments />} />
+          <Route path="profil" element={<ClientProfile />} />
+        </Route>
 
-      {/* Routes admin */}
-      <Route path="admin" element={<AdminLayout />}>
-        <Route index element={<AdminDashboard />} />
-        <Route path="biens" element={<AdminProperties />} />
-        <Route path="clients" element={<AdminClients />} />
-        <Route path="demandes" element={<AdminRequests />} />
-        <Route path="contrats" element={<AdminContracts />} />
-        <Route path="paiements" element={<AdminPayments />} />
-        <Route path="parametres" element={<AdminSettings />} />
-      </Route>
+        {/* Routes admin/agent protégées */}
+        <Route path="admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<AdminDashboard />} />
+          <Route path="biens" element={<AdminProperties />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="demandes" element={<AdminRequests />} />
+          <Route path="contrats" element={<AdminContracts />} />
+          <Route path="paiements" element={<AdminPayments />} />
+          <Route path="parametres" element={<AdminSettings />} />
+        </Route>
 
-      {/* Route 404 */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* Route 404 */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 
