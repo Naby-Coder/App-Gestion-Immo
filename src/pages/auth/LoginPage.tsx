@@ -5,7 +5,7 @@ import { useAuth } from '../../components/auth/AuthProvider';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -25,23 +25,45 @@ const LoginPage = () => {
     setIsSubmitting(true);
     
     try {
-      await signIn(email, password);
-      // La redirection sera gérée par l'AuthProvider après la connexion réussie
-      // Redirection par défaut vers l'accueil
-      navigate('/');
+      console.log('Attempting to sign in with:', email);
+      
+      const result = await signIn(email, password);
+      console.log('Sign in result:', result);
+      
+      // Don't navigate here - let the AuthProvider handle the redirect
+      // The redirect will happen automatically in the auth state change handler
+      
     } catch (err: any) {
       console.error('Login error:', err);
-      if (err.message?.includes('Invalid login credentials') || err.message?.includes('invalid_credentials')) {
-        setError('Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.');
+      
+      let errorMessage = 'Une erreur est survenue lors de la connexion.';
+      
+      if (err.message?.includes('Invalid login credentials') || 
+          err.message?.includes('invalid_credentials') ||
+          err.message?.includes('Invalid email or password')) {
+        errorMessage = 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.';
       } else if (err.message?.includes('Email not confirmed')) {
-        setError('Veuillez confirmer votre email avant de vous connecter.');
-      } else {
-        setError('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
+        errorMessage = 'Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception.';
+      } else if (err.message?.includes('Too many requests')) {
+        errorMessage = 'Trop de tentatives de connexion. Veuillez patienter quelques minutes.';
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading spinner if auth is still initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -91,6 +113,7 @@ const LoginPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
                   placeholder="exemple@email.com"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -110,11 +133,13 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="input pr-10"
                   placeholder="Votre mot de passe"
+                  disabled={isSubmitting}
                 />
                 <button
                   type="button"
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-500"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isSubmitting}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -130,6 +155,7 @@ const LoginPage = () => {
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  disabled={isSubmitting}
                 />
                 <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900">
                   Se souvenir de moi
@@ -149,7 +175,14 @@ const LoginPage = () => {
                 disabled={isSubmitting}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Connexion en cours...
+                  </div>
+                ) : (
+                  'Se connecter'
+                )}
               </button>
             </div>
           </form>

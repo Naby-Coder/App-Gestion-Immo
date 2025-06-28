@@ -32,28 +32,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
+      console.log('Fetching profile for user:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId);
+        .eq('id', userId)
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no profile exists
 
       if (error) {
         console.error('Error fetching profile:', error);
-        setProfile(null);
         return null;
-      } else if (data && data.length > 0) {
-        setProfile(data[0]);
-        return data[0];
+      }
+
+      if (data) {
+        console.log('Profile found:', data);
+        setProfile(data);
+        return data;
       } else {
-        // No profile found - this is okay for new users
+        console.log('No profile found for user:', userId);
         setProfile(null);
         return null;
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error('Error in fetchProfile:', error);
       setProfile(null);
+      return null;
+    }
+  };
+
+  const createProfile = async (user: User, userData: any): Promise<UserProfile | null> => {
+    try {
+      console.log('Creating profile for user:', user.id, userData);
+      
+      const profileData = {
+        id: user.id,
+        first_name: userData.firstName || user.user_metadata?.first_name || 'Utilisateur',
+        last_name: userData.lastName || user.user_metadata?.last_name || '',
+        role: userData.role || user.user_metadata?.role || 'client',
+        phone: userData.phone || null,
+        avatar_url: null
+      };
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating profile:', error);
+        return null;
+      }
+
+      console.log('Profile created successfully:', data);
+      setProfile(data);
+      return data;
+    } catch (error) {
+      console.error('Error in createProfile:', error);
       return null;
     }
   };
@@ -61,9 +99,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
     const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -71,11 +110,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (mounted) {
+          console.log('Session found:', !!session, session?.user?.email);
+          
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            await fetchProfile(session.user.id);
+            const profile = await fetchProfile(session.user.id);
+            
+            // If no profile exists, try to create one from user metadata
+            if (!profile && session.user.user_metadata) {
+              await createProfile(session.user, session.user.user_metadata);
+            }
           }
           
           setLoading(false);
@@ -90,7 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -102,19 +147,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
+        let profile = await fetchProfile(session.user.id);
         
-        // Redirect based on role after successful login
+        // If no profile exists and this is a sign in, try to create one
+        if (!profile && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          profile = await createProfile(session.user, session.user.user_metadata || {});
+        }
+        
+        // Handle redirects after successful authentication
         if (event === 'SIGNED_IN' && profile) {
           const currentPath = window.location.pathname;
           
-          // Only redirect if we're on login/register pages
+          // Only redirect if we're on auth pages
           if (currentPath === '/login' || currentPath === '/inscription') {
-            if (profile.role === 'admin' || profile.role === 'agent') {
-              window.location.href = '/admin';
-            } else {
-              window.location.href = '/espace-client';
-            }
+            setTimeout(() => {
+              if (profile.role === 'admin' || profile.role === 'agent') {
+                window.location.href = '/admin';
+              } else {
+                window.location.href = '/espace-client';
+              }
+            }, 100);
           }
         }
       } else {
@@ -131,9 +183,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, userData: any) => {
-    setLoading(true);
-    
     try {
+      console.log('Signing up user:', email, userData);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -141,106 +193,99 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             first_name: userData.firstName,
             last_name: userData.lastName,
-            role: userData.role || 'client'
+            role: userData.role || 'client',
+            phone: userData.phone || null
           }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Signup error:', error);
+        throw error;
+      }
 
-      // Create profile after successful signup
-      if (data.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            first_name: userData.firstName,
-            last_name: userData.lastName,
-            role: userData.role || 'client',
-            phone: userData.phone || null
-          })
-          .select()
-          .single();
+      console.log('Signup successful:', data);
 
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-        } else if (profileData) {
-          setProfile(profileData);
-        }
-
-        // If user is an agent, create agent record
-        if (userData.role === 'agent') {
-          const { error: agentError } = await supabase
-            .from('agents')
-            .insert({
-              user_id: data.user.id,
-              bio: userData.bio || 'Agent immobilier professionnel',
-              position: userData.position || 'Agent immobilier',
-              specialties: userData.specialties || []
-            });
-
-          if (agentError) {
-            console.error('Error creating agent record:', agentError);
-          }
-        }
-
-        // If user is a client, create client record
-        if (userData.role === 'client') {
-          const { error: clientError } = await supabase
-            .from('clients')
-            .insert({
-              user_id: data.user.id,
-              property_types: userData.propertyTypes || [],
-              budget_min: userData.budgetMin || 0,
-              budget_max: userData.budgetMax || 0,
-              preferred_locations: userData.preferredLocations || []
-            });
-
-          if (clientError) {
-            console.error('Error creating client record:', clientError);
-          }
-        }
+      // Profile will be created automatically by the auth state change handler
+      // or we can create it here if the user is immediately available
+      if (data.user && !data.session) {
+        // User needs to confirm email
+        console.log('User needs to confirm email');
       }
 
       return data;
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('Error in signUp:', error);
+      throw error;
     }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      console.log('Signing in user:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) throw error;
-    return data;
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
+
+      console.log('Sign in successful:', data);
+      return data;
+    } catch (error) {
+      console.error('Error in signIn:', error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setProfile(null);
+    try {
+      console.log('Signing out...');
+      
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        throw error;
+      }
+      
+      setProfile(null);
+      setUser(null);
+      setSession(null);
+      
+      // Redirect to home page
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error in signOut:', error);
+      throw error;
+    }
   };
 
   const updateProfile = async (updates: any) => {
     if (!user) throw new Error('No user logged in');
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updates)
-      .eq('id', user.id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    
-    if (data) {
-      setProfile(data);
+      if (error) throw error;
+      
+      if (data) {
+        setProfile(data);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
     }
-    
-    return data;
   };
 
   const value = {

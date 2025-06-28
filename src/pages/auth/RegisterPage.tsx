@@ -5,7 +5,7 @@ import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUp, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -39,33 +39,69 @@ const RegisterPage = () => {
       return;
     }
 
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      setError('Le prénom et le nom sont obligatoires');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await signUp(formData.email, formData.password, {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
+      console.log('Attempting to sign up:', formData.email, formData.role);
+      
+      const result = await signUp(formData.email, formData.password, {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        phone: formData.phone.trim() || null,
         role: formData.role
       });
+
+      console.log('Sign up result:', result);
+
+      if (result.user && !result.session) {
+        // User needs to confirm email
+        setError('Un email de confirmation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation avant de vous connecter.');
+        return;
+      }
+
+      // If we have a session, the redirect will be handled by AuthProvider
+      // Otherwise, redirect to login
+      if (!result.session) {
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      }
       
-      // Redirection selon le rôle
-      if (formData.role === 'agent' || formData.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/espace-client');
-      }
     } catch (err: any) {
-      // Handle specific error cases
-      if (err.message?.includes('user_already_exists') || err.message?.includes('User already registered')) {
-        setError('Un compte avec cette adresse email existe déjà. Veuillez vous connecter ou utiliser une autre adresse email.');
-      } else {
-        setError(err.message || 'Une erreur est survenue lors de l\'inscription');
+      console.error('Registration error:', err);
+      
+      let errorMessage = 'Une erreur est survenue lors de l\'inscription';
+      
+      if (err.message?.includes('user_already_exists') || 
+          err.message?.includes('User already registered')) {
+        errorMessage = 'Un compte avec cette adresse email existe déjà. Veuillez vous connecter ou utiliser une autre adresse email.';
+      } else if (err.message?.includes('Invalid email')) {
+        errorMessage = 'Adresse email invalide. Veuillez vérifier le format de votre email.';
+      } else if (err.message?.includes('Password should be at least')) {
+        errorMessage = 'Le mot de passe doit contenir au moins 6 caractères.';
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+      
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading spinner if auth is still initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -109,6 +145,7 @@ const RegisterPage = () => {
                 value={formData.role}
                 onChange={handleChange}
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
+                disabled={isSubmitting}
               >
                 <option value="client">Client</option>
                 <option value="agent">Agent immobilier</option>
@@ -133,6 +170,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="Amadou"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -154,6 +192,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="Diallo"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -175,6 +214,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="vous@exemple.com"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -191,6 +231,7 @@ const RegisterPage = () => {
                 onChange={handleChange}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                 placeholder="+221 77 123 45 67"
+                disabled={isSubmitting}
               />
             </div>
 
@@ -211,8 +252,10 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="••••••••"
+                  disabled={isSubmitting}
                 />
               </div>
+              <p className="mt-1 text-xs text-gray-500">Minimum 6 caractères</p>
             </div>
 
             <div>
@@ -232,6 +275,7 @@ const RegisterPage = () => {
                   onChange={handleChange}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="••••••••"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -242,7 +286,14 @@ const RegisterPage = () => {
                 disabled={isSubmitting}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Inscription en cours...' : 'S\'inscrire'}
+                {isSubmitting ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Inscription en cours...
+                  </div>
+                ) : (
+                  'S\'inscrire'
+                )}
               </button>
             </div>
           </form>
