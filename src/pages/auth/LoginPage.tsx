@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
-import { supabase } from '../../lib/supabase';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -26,25 +25,16 @@ const LoginPage = () => {
     setIsSubmitting(true);
     
     try {
-      const { user } = await signIn(email, password);
-      
-      // Get user profile to determine role
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      
-      // Redirect based on role
-      if (profile?.role === 'admin' || profile?.role === 'agent') {
-        navigate('/admin');
-      } else {
-        navigate('/espace-client');
-      }
+      await signIn(email, password);
+      // La redirection sera gérée par l'AuthProvider après la connexion réussie
+      // Redirection par défaut vers l'accueil
+      navigate('/');
     } catch (err: any) {
       console.error('Login error:', err);
-      if (err.message?.includes('Invalid login credentials')) {
+      if (err.message?.includes('Invalid login credentials') || err.message?.includes('invalid_credentials')) {
         setError('Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.');
+      } else if (err.message?.includes('Email not confirmed')) {
+        setError('Veuillez confirmer votre email avant de vous connecter.');
       } else {
         setError('Une erreur est survenue lors de la connexion. Veuillez réessayer.');
       }
@@ -100,6 +90,7 @@ const LoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
+                  placeholder="exemple@email.com"
                 />
               </div>
             </div>
@@ -118,6 +109,7 @@ const LoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input pr-10"
+                  placeholder="Votre mot de passe"
                 />
                 <button
                   type="button"
