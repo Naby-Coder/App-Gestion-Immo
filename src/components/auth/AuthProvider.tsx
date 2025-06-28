@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
-import { useNavigate, useLocation } from 'react-router-dom';
 
 export interface UserProfile {
   id: string;
@@ -158,7 +157,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null);
       }
       
-      setLoading(false);
+      // Only set loading to false after we've handled the profile
+      if (event !== 'TOKEN_REFRESHED') {
+        setLoading(false);
+      }
     });
 
     return () => {

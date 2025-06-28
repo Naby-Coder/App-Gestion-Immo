@@ -114,13 +114,13 @@ const RegisterPage = () => {
     }
   };
 
-  // Show loading spinner if auth is still initializing
-  if (authLoading) {
+  // Show loading spinner ONLY during initial auth check AND if user is already logged in
+  if (authLoading && user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <p className="text-gray-600">Redirection vers votre espace...</p>
         </div>
       </div>
     );
