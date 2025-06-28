@@ -2,8 +2,20 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
 
+export interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone: string | null;
+  avatar_url: string | null;
+  role: 'admin' | 'agent' | 'client';
+  created_at: string;
+  updated_at: string;
+}
+
 interface AuthContextType {
   user: User | null;
+  profile: UserProfile | null;
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<any>;
@@ -16,15 +28,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setProfile(null);
+      } else if (data && data.length > 0) {
+        setProfile(data[0]);
+      } else {
+        // No profile found - this is okay, set to null
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes
@@ -33,7 +74,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -56,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Create profile after successful signup
     if (data.user) {
-      const { error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .insert({
           id: data.user.id,
@@ -64,10 +111,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           last_name: userData.lastName,
           role: userData.role || 'client',
           phone: userData.phone || null
-        });
+        })
+        .select()
+        .single();
 
       if (profileError) {
         console.error('Error creating profile:', profileError);
+      } else if (profileData) {
+        setProfile(profileData);
       }
 
       // If user is an agent, create agent record
@@ -120,21 +171,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    setProfile(null);
   };
 
   const updateProfile = async (updates: any) => {
     if (!user) throw new Error('No user logged in');
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .update(updates)
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select()
+      .single();
 
     if (error) throw error;
+    
+    if (data) {
+      setProfile(data);
+    }
+    
+    return data;
   };
 
   const value = {
     user,
+    profile,
     session,
     loading,
     signUp,

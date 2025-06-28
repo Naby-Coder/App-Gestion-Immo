@@ -56,7 +56,12 @@ const RegisterPage = () => {
         navigate('/espace-client');
       }
     } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue lors de l\'inscription');
+      // Handle specific error cases
+      if (err.message?.includes('user_already_exists') || err.message?.includes('User already registered')) {
+        setError('Un compte avec cette adresse email existe déjà. Veuillez vous connecter ou utiliser une autre adresse email.');
+      } else {
+        setError(err.message || 'Une erreur est survenue lors de l\'inscription');
+      }
     } finally {
       setIsSubmitting(false);
     }
