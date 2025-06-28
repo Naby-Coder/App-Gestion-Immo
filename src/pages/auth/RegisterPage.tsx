@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, Lock, User, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
   const { signUp, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -16,6 +15,7 @@ const RegisterPage = () => {
     role: 'client'
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -28,6 +28,7 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -60,16 +61,14 @@ const RegisterPage = () => {
 
       if (result.user && !result.session) {
         // User needs to confirm email
-        setError('Un email de confirmation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation avant de vous connecter.');
+        setSuccess('Un email de confirmation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation avant de vous connecter.');
         return;
       }
 
-      // If we have a session, the redirect will be handled by AuthProvider
-      // Otherwise, redirect to login
-      if (!result.session) {
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+      if (result.session) {
+        // User is immediately signed in
+        setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
+        // La redirection sera gérée automatiquement par l'AuthProvider
       }
       
     } catch (err: any) {
@@ -98,7 +97,10 @@ const RegisterPage = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
       </div>
     );
   }
@@ -134,6 +136,25 @@ const RegisterPage = () => {
             </div>
           )}
 
+          {success && (
+            <div className="mb-4 bg-green-50 border-l-4 border-green-400 p-4">
+              <div className="flex">
+                <div className="ml-3">
+                  <p className="text-sm text-green-700">{success}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isSubmitting && (
+            <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                <p className="text-sm text-blue-700">Création du compte... Redirection automatique vers votre espace.</p>
+              </div>
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700">
@@ -147,10 +168,15 @@ const RegisterPage = () => {
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
                 disabled={isSubmitting}
               >
-                <option value="client">Client</option>
-                <option value="agent">Agent immobilier</option>
-                <option value="admin">Administrateur</option>
+                <option value="client">Client - Recherche de biens</option>
+                <option value="agent">Agent immobilier - Gestion des biens</option>
+                <option value="admin">Administrateur - Gestion complète</option>
               </select>
+              <p className="mt-1 text-xs text-gray-500">
+                {formData.role === 'client' && 'Accès à l\'espace client pour rechercher et suivre vos biens favoris'}
+                {formData.role === 'agent' && 'Accès à l\'interface d\'administration pour gérer les biens et clients'}
+                {formData.role === 'admin' && 'Accès complet à toutes les fonctionnalités d\'administration'}
+              </p>
             </div>
 
             <div>

@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Eye, EyeOff, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const LoginPage = () => {
-  const navigate = useNavigate();
   const { signIn, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,8 +29,15 @@ const LoginPage = () => {
       const result = await signIn(email, password);
       console.log('Sign in result:', result);
       
-      // Don't navigate here - let the AuthProvider handle the redirect
-      // The redirect will happen automatically in the auth state change handler
+      // La redirection sera gérée automatiquement par l'AuthProvider
+      // Afficher un message de succès temporaire
+      if (result.session) {
+        setError('');
+        // Un petit délai pour montrer que la connexion est réussie
+        setTimeout(() => {
+          // La redirection se fera automatiquement
+        }, 100);
+      }
       
     } catch (err: any) {
       console.error('Login error:', err);
@@ -60,7 +66,10 @@ const LoginPage = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
       </div>
     );
   }
@@ -93,6 +102,15 @@ const LoginPage = () => {
                 <div className="ml-3">
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {isSubmitting && (
+            <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
+              <div className="flex items-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                <p className="text-sm text-blue-700">Connexion en cours... Redirection automatique vers votre espace.</p>
               </div>
             </div>
           )}
@@ -198,12 +216,18 @@ const LoginPage = () => {
             </div>
 
             <div className="mt-6 text-sm text-gray-600">
-              <p className="mb-2">Pour tester l'application :</p>
-              <ul className="space-y-1 text-xs">
-                <li>• Créez un compte via "Inscription"</li>
-                <li>• Choisissez le type : Client, Agent ou Admin</li>
-                <li>• Explorez les fonctionnalités selon votre rôle</li>
-              </ul>
+              <p className="mb-2 font-medium">Pour tester l'application :</p>
+              <div className="space-y-2 text-xs bg-gray-50 p-3 rounded-md">
+                <div>
+                  <p className="font-medium text-gray-700">1. Créez un compte via "Inscription"</p>
+                  <p className="text-gray-600">• Choisissez le type : Client, Agent ou Admin</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-700">2. Après connexion, redirection automatique :</p>
+                  <p className="text-gray-600">• <span className="font-medium">Client</span> → Espace Client</p>
+                  <p className="text-gray-600">• <span className="font-medium">Agent/Admin</span> → Interface d'administration</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

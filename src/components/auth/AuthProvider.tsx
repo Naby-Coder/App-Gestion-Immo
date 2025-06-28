@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no profile exists
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -96,6 +96,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const redirectToRoleDashboard = (role: string) => {
+    console.log('Redirecting user with role:', role);
+    
+    const dashboardRoutes = {
+      admin: '/admin',
+      agent: '/admin', // Les agents utilisent aussi l'interface admin
+      client: '/espace-client'
+    };
+
+    const targetRoute = dashboardRoutes[role as keyof typeof dashboardRoutes] || '/';
+    
+    // Vérifier si on est déjà sur la bonne page
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith(targetRoute)) {
+      console.log('Already on correct dashboard, no redirect needed');
+      return;
+    }
+
+    // Redirection avec un petit délai pour s'assurer que tout est chargé
+    setTimeout(() => {
+      console.log('Redirecting to:', targetRoute);
+      window.location.href = targetRoute;
+    }, 500);
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -120,7 +145,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             // If no profile exists, try to create one from user metadata
             if (!profile && session.user.user_metadata) {
-              await createProfile(session.user, session.user.user_metadata);
+              const newProfile = await createProfile(session.user, session.user.user_metadata);
+              
+              // Redirect after profile creation
+              if (newProfile) {
+                redirectToRoleDashboard(newProfile.role);
+              }
+            } else if (profile) {
+              // Check if we need to redirect based on current location
+              const currentPath = window.location.pathname;
+              const isOnAuthPage = currentPath === '/login' || currentPath === '/inscription';
+              
+              if (isOnAuthPage) {
+                redirectToRoleDashboard(profile.role);
+              }
             }
           }
           
@@ -158,19 +196,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_IN' && profile) {
           const currentPath = window.location.pathname;
           
-          // Only redirect if we're on auth pages
-          if (currentPath === '/login' || currentPath === '/inscription') {
-            setTimeout(() => {
-              if (profile.role === 'admin' || profile.role === 'agent') {
-                window.location.href = '/admin';
-              } else {
-                window.location.href = '/espace-client';
-              }
-            }, 100);
+          // Only redirect if we're on auth pages or home page
+          if (currentPath === '/login' || currentPath === '/inscription' || currentPath === '/') {
+            redirectToRoleDashboard(profile.role);
           }
         }
       } else {
         setProfile(null);
+        
+        // Redirect to home if signed out
+        if (event === 'SIGNED_OUT') {
+          const currentPath = window.location.pathname;
+          const isOnProtectedRoute = currentPath.startsWith('/admin') || currentPath.startsWith('/espace-client');
+          
+          if (isOnProtectedRoute) {
+            window.location.href = '/';
+          }
+        }
       }
       
       setLoading(false);
@@ -206,11 +248,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('Signup successful:', data);
 
-      // Profile will be created automatically by the auth state change handler
-      // or we can create it here if the user is immediately available
-      if (data.user && !data.session) {
-        // User needs to confirm email
-        console.log('User needs to confirm email');
+      // If we have a session immediately (email confirmation disabled), redirect
+      if (data.session && data.user) {
+        console.log('User signed up with immediate session');
+        // The redirect will be handled by the auth state change handler
       }
 
       return data;
@@ -235,6 +276,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('Sign in successful:', data);
+      // The redirect will be handled by the auth state change handler
       return data;
     } catch (error) {
       console.error('Error in signIn:', error);
@@ -257,7 +299,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       
       // Redirect to home page
-      window.location.href = '/';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     } catch (error) {
       console.error('Error in signOut:', error);
       throw error;
