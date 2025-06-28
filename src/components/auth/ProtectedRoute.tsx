@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthContext } from './AuthProvider';
+import { useAuth } from '../../hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -13,7 +13,7 @@ export function ProtectedRoute({
   requiredRole, 
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
-  const { user, profile, loading } = useAuthContext();
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (
