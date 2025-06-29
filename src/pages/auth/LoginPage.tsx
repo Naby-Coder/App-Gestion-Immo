@@ -4,7 +4,7 @@ import { Eye, EyeOff, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const LoginPage = () => {
-  const { signIn, loading: authLoading, user, profile } = useAuth();
+  const { signIn, signOut, loading: authLoading, user, profile } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,10 +13,28 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirection automatique si l'utilisateur est déjà connecté
+  // Déconnecter automatiquement l'utilisateur au chargement de la page de connexion
   useEffect(() => {
-    if (!authLoading && user && profile) {
-      console.log('User already logged in, redirecting...', profile.role);
+    const handleSignOut = async () => {
+      if (user) {
+        console.log('User detected on login page, signing out...');
+        try {
+          await signOut();
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      }
+    };
+
+    if (!authLoading) {
+      handleSignOut();
+    }
+  }, [user, authLoading, signOut]);
+
+  // Redirection automatique si l'utilisateur est connecté APRÈS une connexion réussie
+  useEffect(() => {
+    if (!authLoading && user && profile && !isSubmitting) {
+      console.log('User logged in successfully, redirecting...', profile.role);
       
       const dashboardRoutes = {
         admin: '/admin',
@@ -27,7 +45,7 @@ const LoginPage = () => {
       const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate, isSubmitting]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,23 +66,7 @@ const LoginPage = () => {
       
       if (result.session && result.user) {
         setError('');
-        console.log('Login successful, redirecting...');
-        
-        // Déterminer le rôle et rediriger immédiatement
-        const role = result.user.user_metadata?.role || 'client';
-        console.log('User role:', role);
-        
-        const dashboardRoutes = {
-          admin: '/admin',
-          agent: '/admin',
-          client: '/espace-client'
-        };
-        
-        const targetRoute = dashboardRoutes[role] || '/espace-client';
-        console.log('Redirecting to:', targetRoute);
-        
-        // Redirection immédiate
-        navigate(targetRoute, { replace: true });
+        console.log('Login successful, user will be redirected by useEffect...');
       }
       
     } catch (err: any) {
@@ -85,18 +87,17 @@ const LoginPage = () => {
       }
       
       setError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Afficher le spinner SEULEMENT si on est en train de soumettre OU si l'utilisateur est connecté et en cours de redirection
-  if ((authLoading && user) || (isSubmitting && !error)) {
+  // Afficher le spinner SEULEMENT si on est en train de soumettre ET qu'il n'y a pas d'erreur
+  if (isSubmitting && !error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirection vers votre espace...</p>
+          <p className="text-gray-600">Connexion en cours...</p>
         </div>
       </div>
     );

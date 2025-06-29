@@ -4,7 +4,7 @@ import { Mail, Lock, User, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
-  const { signUp, loading: authLoading, user, profile } = useAuth();
+  const { signUp, signOut, loading: authLoading, user, profile } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -19,10 +19,28 @@ const RegisterPage = () => {
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirection automatique si l'utilisateur est déjà connecté
+  // Déconnecter automatiquement l'utilisateur au chargement de la page d'inscription
   useEffect(() => {
-    if (!authLoading && user && profile) {
-      console.log('User already logged in, redirecting...', profile.role);
+    const handleSignOut = async () => {
+      if (user) {
+        console.log('User detected on register page, signing out...');
+        try {
+          await signOut();
+        } catch (error) {
+          console.error('Error signing out:', error);
+        }
+      }
+    };
+
+    if (!authLoading) {
+      handleSignOut();
+    }
+  }, [user, authLoading, signOut]);
+
+  // Redirection automatique si l'utilisateur est connecté APRÈS une inscription réussie
+  useEffect(() => {
+    if (!authLoading && user && profile && !isSubmitting) {
+      console.log('User registered successfully, redirecting...', profile.role);
       
       const dashboardRoutes = {
         admin: '/admin',
@@ -30,10 +48,10 @@ const RegisterPage = () => {
         client: '/espace-client'
       };
       
-      const targetRoute = dashboardRoutes[profile.role] || '/';
+      const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate, isSubmitting]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -86,19 +104,7 @@ const RegisterPage = () => {
       if (result.session || result.user) {
         // User is immediately signed in or account created
         setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
-        
-        // Attendre un peu pour que le profil soit chargé
-        setTimeout(() => {
-          const role = formData.role;
-          const dashboardRoutes = {
-            admin: '/admin',
-            agent: '/admin',
-            client: '/espace-client'
-          };
-          
-          const targetRoute = dashboardRoutes[role] || '/espace-client';
-          navigate(targetRoute, { replace: true });
-        }, 1000);
+        // La redirection sera gérée par useEffect
       }
       
     } catch (err: any) {
@@ -122,13 +128,13 @@ const RegisterPage = () => {
     }
   };
 
-  // Ne montrer le spinner de chargement QUE si l'utilisateur est déjà connecté
-  if (authLoading && user) {
+  // Afficher le spinner SEULEMENT si on est en train de soumettre ET qu'il n'y a pas d'erreur
+  if (isSubmitting && !error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirection vers votre espace...</p>
+          <p className="text-gray-600">Création du compte en cours...</p>
         </div>
       </div>
     );
@@ -171,15 +177,6 @@ const RegisterPage = () => {
                 <div className="ml-3">
                   <p className="text-sm text-green-700">{success}</p>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {isSubmitting && (
-            <div className="mb-4 bg-blue-50 border-l-4 border-blue-400 p-4">
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-                <p className="text-sm text-blue-700">Création du compte... Redirection vers votre espace.</p>
               </div>
             </div>
           )}

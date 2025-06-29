@@ -336,9 +336,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
+      // Nettoyer complètement l'état
       setProfile(null);
       setUser(null);
       setSession(null);
+      
+      // Nettoyer le localStorage si nécessaire
+      localStorage.clear();
+      
     } catch (error) {
       console.error('Error in signOut:', error);
       throw error;
