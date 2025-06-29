@@ -30,15 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Simuler un délai de chargement initial
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   const signUp = async (email: string, password: string, userData: any) => {
     try {
       console.log('🎯 Mode Démo - Inscription simulée:', email, userData.role);
@@ -91,13 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🎯 Mode Démo - Connexion simulée:', email);
       
+      // Validation basique
+      if (!email || !password) {
+        throw new Error('Email et mot de passe requis');
+      }
+      
       // Simuler un délai de connexion
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // Déterminer le rôle selon l'email
       let role = 'client';
-      if (email.includes('admin')) role = 'admin';
-      if (email.includes('agent')) role = 'agent';
+      if (email.toLowerCase().includes('admin')) role = 'admin';
+      if (email.toLowerCase().includes('agent')) role = 'agent';
       
       const mockUser = {
         id: Date.now().toString(),
@@ -152,7 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('demo-user');
       localStorage.removeItem('demo-profile');
       localStorage.removeItem('demo-session');
-      localStorage.clear();
       
     } catch (error) {
       console.error('Erreur déconnexion démo:', error);
@@ -177,26 +172,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Restaurer la session depuis localStorage au chargement
+  // Initialisation au chargement
   useEffect(() => {
-    const savedUser = localStorage.getItem('demo-user');
-    const savedProfile = localStorage.getItem('demo-profile');
-    const savedSession = localStorage.getItem('demo-session');
-    
-    if (savedUser && savedProfile && savedSession) {
+    const initializeAuth = () => {
       try {
-        setUser(JSON.parse(savedUser));
-        setProfile(JSON.parse(savedProfile));
-        setSession(JSON.parse(savedSession));
-        console.log('🎯 Session démo restaurée depuis localStorage');
+        const savedUser = localStorage.getItem('demo-user');
+        const savedProfile = localStorage.getItem('demo-profile');
+        const savedSession = localStorage.getItem('demo-session');
+        
+        if (savedUser && savedProfile && savedSession) {
+          setUser(JSON.parse(savedUser));
+          setProfile(JSON.parse(savedProfile));
+          setSession(JSON.parse(savedSession));
+          console.log('🎯 Session démo restaurée depuis localStorage');
+        }
       } catch (error) {
         console.error('Erreur restauration session démo:', error);
         // Nettoyer en cas d'erreur
-        localStorage.clear();
+        localStorage.removeItem('demo-user');
+        localStorage.removeItem('demo-profile');
+        localStorage.removeItem('demo-session');
+      } finally {
+        setLoading(false);
       }
-    }
-    
-    setLoading(false);
+    };
+
+    // Délai court pour éviter le flash
+    const timer = setTimeout(initializeAuth, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const value = {

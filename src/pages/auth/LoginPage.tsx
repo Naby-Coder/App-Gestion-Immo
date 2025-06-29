@@ -16,7 +16,7 @@ const LoginPage = () => {
   // Déconnecter automatiquement l'utilisateur au chargement de la page de connexion
   useEffect(() => {
     const handleSignOut = async () => {
-      if (user) {
+      if (user && !authLoading) {
         console.log('Utilisateur détecté sur la page de connexion, déconnexion...');
         try {
           await signOut();

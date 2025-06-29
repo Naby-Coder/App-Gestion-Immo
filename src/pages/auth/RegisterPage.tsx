@@ -22,7 +22,7 @@ const RegisterPage = () => {
   // Déconnecter automatiquement l'utilisateur au chargement de la page d'inscription
   useEffect(() => {
     const handleSignOut = async () => {
-      if (user) {
+      if (user && !authLoading) {
         console.log('Utilisateur détecté sur la page d\'inscription, déconnexion...');
         try {
           await signOut();
@@ -70,8 +70,8 @@ const RegisterPage = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    if (formData.password.length < 1) {
+      setError('Le mot de passe est requis');
       return;
     }
 
@@ -308,7 +308,7 @@ const RegisterPage = () => {
                   disabled={isSubmitting}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">Minimum 6 caractères</p>
+              <p className="mt-1 text-xs text-gray-500">N'importe quel mot de passe en mode démo</p>
             </div>
 
             <div>
