@@ -142,23 +142,23 @@ const AboutPage = () => {
               {
                 name: 'Mouhamed Ndione',
                 role: 'Directeur des ventes',
-                photo: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg',
+                photo: '/popup-scaled-1-195x300.jpg',
                 description:
-                  'Plus de 10 ans d\'expérience dans l\'immobilier de luxe à Dakar',
+                  'Plus de 10 ans d\'expérience dans l\'immobilier de luxe à Dakar. Expert en biens d\'exception et accompagnement personnalisé.',
               },
               {
                 name: 'Fadel Fall',
                 role: 'Conseiller immobilier',
-                photo: 'https://images.pexels.com/photos/2381069/pexels-photo-2381069.jpeg',
+                photo: '/Fadel.png',
                 description:
-                  'Spécialiste du marché immobilier dakarois et des quartiers d\'affaires',
+                  'Spécialiste du marché immobilier dakarois depuis 8 ans. Connaissance approfondie de chaque quartier et ses spécificités.',
               },
               {
                 name: 'Aïssatou Sall',
                 role: 'Conseillère juridique',
-                photo: 'https://images.pexels.com/photos/2381068/pexels-photo-2381068.jpeg',
+                photo: '/Snapchat-1056148261.jpg',
                 description:
-                  'Experte en droit immobilier et valorisation de biens',
+                  'Experte en droit immobilier avec 5 ans d\'expérience. Accompagnement juridique et sécurisation des transactions.',
               },
             ].map((member, index) => (
               <motion.div
@@ -167,20 +167,35 @@ const AboutPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
-                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
+                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group"
               >
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-80 overflow-hidden">
                   <img
                     src={member.photo}
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    alt={`${member.name} - ${member.role} chez ImmoExpert`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => {
+                      // Fallback en cas d'erreur de chargement
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg';
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <Mail size={18} className="text-white" />
+                      </div>
+                      <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <Phone size={18} className="text-white" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-900 mb-1">{member.name}</h3>
                   <p className="text-primary-600 font-medium mb-4">{member.role}</p>
-                  <p className="text-gray-600">{member.description}</p>
+                  <p className="text-gray-600 leading-relaxed">{member.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -201,7 +216,7 @@ const AboutPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { number: '500+', label: 'Biens vendus', icon: Building },
-              { number: '15+', label: 'Années d\'expérience', icon: Award },
+              { number: '20+', label: 'Années d\'expérience', icon: Award },
               { number: '1000+', label: 'Clients satisfaits', icon: Users },
               { number: '98%', label: 'Taux de satisfaction', icon: Clock },
             ].map((stat, index) => (
@@ -211,7 +226,7 @@ const AboutPage = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-center bg-white rounded-xl p-6 shadow-sm"
+                className="text-center bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <stat.icon className="w-6 h-6 text-primary-600" />
