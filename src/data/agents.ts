@@ -18,7 +18,7 @@ export const agents: Agent[] = [
     email: 'fadel.fall@immoexpert.sn',
     phone: '+221 76 234 56 78',
     bio: "Spécialiste du marché immobilier dakarois depuis 8 ans, Fadel connaît parfaitement chaque quartier et ses spécificités. Sa rigueur et son sens de la négociation sont des atouts majeurs pour concrétiser vos projets.",
-    avatar: 'https://images.pexels.com/photos/2381069/pexels-photo-2381069.jpeg',
+    avatar: '/Fadel.png',
     position: 'Conseiller immobilier'
   },
   {
