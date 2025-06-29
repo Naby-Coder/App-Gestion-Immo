@@ -1,48 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+// Mode démo - Pas de connexion Supabase
+// L'application fonctionne entièrement en local avec des données fictives
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+console.log('🎯 Mode Démo Activé - Aucune connexion base de données requise');
+console.log('📱 Application prête pour présentation locale');
 
-let supabase: any = null;
+// Pas de client Supabase - tout est en mode démo
+export const supabase = null;
 
-// Fonction pour valider l'URL Supabase
-function isValidSupabaseUrl(url: string): boolean {
-  if (!url || url === 'your_supabase_project_url') return false;
-  try {
-    const urlObj = new URL(url);
-    return urlObj.protocol === 'https:' && urlObj.hostname.includes('supabase');
-  } catch {
-    return false;
-  }
-}
-
-// Fonction pour valider la clé anonyme Supabase
-function isValidSupabaseKey(key: string): boolean {
-  return !(!key || key === 'your_supabase_anon_key' || key.length < 10);
-}
-
-// Vérifier si les variables d'environnement sont définies et valides
-if (supabaseUrl && supabaseAnonKey && isValidSupabaseUrl(supabaseUrl) && isValidSupabaseKey(supabaseAnonKey)) {
-  try {
-    supabase = createClient(supabaseUrl, supabaseAnonKey);
-    console.log('Supabase client initialized successfully');
-  } catch (error) {
-    console.error('Error initializing Supabase client:', error);
-    supabase = null;
-  }
-} else {
-  console.warn('Supabase configuration incomplete or invalid. Running in mock mode.');
-  console.warn('Please configure your Supabase credentials in the .env file:');
-  console.warn('- VITE_SUPABASE_URL should be your Supabase project URL (e.g., https://your-project.supabase.co)');
-  console.warn('- VITE_SUPABASE_ANON_KEY should be your Supabase anonymous key');
-  console.warn('Current values:');
-  console.warn('- URL valid:', isValidSupabaseUrl(supabaseUrl || ''));
-  console.warn('- Key valid:', isValidSupabaseKey(supabaseAnonKey || ''));
-}
-
-export { supabase };
-
-// Types pour TypeScript
+// Types pour TypeScript (gardés pour compatibilité)
 export type Database = {
   public: {
     Tables: {

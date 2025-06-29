@@ -23,11 +23,11 @@ const RegisterPage = () => {
   useEffect(() => {
     const handleSignOut = async () => {
       if (user) {
-        console.log('User detected on register page, signing out...');
+        console.log('Utilisateur détecté sur la page d\'inscription, déconnexion...');
         try {
           await signOut();
         } catch (error) {
-          console.error('Error signing out:', error);
+          console.error('Erreur lors de la déconnexion:', error);
         }
       }
     };
@@ -40,7 +40,7 @@ const RegisterPage = () => {
   // Redirection automatique si l'utilisateur est connecté APRÈS une inscription réussie
   useEffect(() => {
     if (!authLoading && user && profile && !isSubmitting) {
-      console.log('User registered successfully, redirecting...', profile.role);
+      console.log('Utilisateur inscrit avec succès, redirection...', profile.role);
       
       const dashboardRoutes = {
         admin: '/admin',
@@ -83,7 +83,7 @@ const RegisterPage = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('Attempting to sign up:', formData.email, formData.role);
+      console.log('Tentative d\'inscription:', formData.email, formData.role);
       
       const result = await signUp(formData.email, formData.password, {
         firstName: formData.firstName.trim(),
@@ -92,7 +92,7 @@ const RegisterPage = () => {
         role: formData.role
       });
 
-      console.log('Sign up result:', result);
+      console.log('Résultat de l\'inscription:', result);
 
       if (result.user && !result.session) {
         // User needs to confirm email
@@ -109,7 +109,7 @@ const RegisterPage = () => {
       }
       
     } catch (err: any) {
-      console.error('Registration error:', err);
+      console.error('Erreur d\'inscription:', err);
       
       let errorMessage = 'Une erreur est survenue lors de l\'inscription';
       
@@ -357,13 +357,15 @@ const RegisterPage = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Mode Démo</span>
+                <span className="px-2 bg-white text-gray-500">🎯 Mode Démo</span>
               </div>
             </div>
 
             <div className="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-md">
-              <p className="font-medium text-gray-700 mb-1">🎯 Mode Démo Activé</p>
+              <p className="font-medium text-gray-700 mb-1">✨ Application en Mode Démo</p>
               <p>Créez un compte avec n'importe quelles informations pour tester l'application. Votre choix de rôle déterminera l'interface à laquelle vous aurez accès.</p>
+              <p className="mt-2">• Aucune base de données requise</p>
+              <p>• Parfait pour les présentations locales</p>
             </div>
           </div>
         </div>

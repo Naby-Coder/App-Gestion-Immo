@@ -17,11 +17,11 @@ const LoginPage = () => {
   useEffect(() => {
     const handleSignOut = async () => {
       if (user) {
-        console.log('User detected on login page, signing out...');
+        console.log('Utilisateur détecté sur la page de connexion, déconnexion...');
         try {
           await signOut();
         } catch (error) {
-          console.error('Error signing out:', error);
+          console.error('Erreur lors de la déconnexion:', error);
         }
       }
     };
@@ -34,7 +34,7 @@ const LoginPage = () => {
   // Redirection automatique si l'utilisateur est connecté APRÈS une connexion réussie
   useEffect(() => {
     if (!authLoading && user && profile && !isSubmitting) {
-      console.log('User logged in successfully, redirecting...', profile.role);
+      console.log('Utilisateur connecté avec succès, redirection...', profile.role);
       
       const dashboardRoutes = {
         admin: '/admin',
@@ -59,19 +59,19 @@ const LoginPage = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Attempting to sign in with:', email);
+      console.log('Tentative de connexion avec:', email);
       
       const result = await signIn(email, password);
-      console.log('Sign in result:', result);
+      console.log('Résultat de la connexion:', result);
       
       if (result.session && result.user) {
         setError('');
-        console.log('Login successful, user will be redirected by useEffect...');
+        console.log('Connexion réussie, l\'utilisateur sera redirigé par useEffect...');
         // Ne pas remettre isSubmitting à false ici pour éviter les conflits
       }
       
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('Erreur de connexion:', err);
       
       let errorMessage = 'Une erreur est survenue lors de la connexion.';
       
@@ -232,15 +232,16 @@ const LoginPage = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Comptes de test</span>
+                <span className="px-2 bg-white text-gray-500">🎯 Mode Démo Activé</span>
               </div>
             </div>
 
             <div className="mt-6 text-sm text-gray-600">
-              <p className="mb-2 font-medium">Pour tester l'application :</p>
-              <div className="space-y-2 text-xs bg-gray-50 p-3 rounded-md">
+              <div className="space-y-3 text-xs bg-gray-50 p-4 rounded-md">
                 <div>
-                  <p className="font-medium text-gray-700">🎯 Mode Démo Activé</p>
+                  <p className="font-medium text-gray-700 mb-2">✨ Application en Mode Démo</p>
+                  <p className="text-gray-600">• Aucune base de données requise</p>
+                  <p className="text-gray-600">• Parfait pour les présentations locales</p>
                   <p className="text-gray-600">• Utilisez n'importe quel email et mot de passe</p>
                 </div>
                 <div>

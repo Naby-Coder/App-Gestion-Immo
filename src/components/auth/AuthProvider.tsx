@@ -1,6 +1,4 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../../lib/supabase';
 
 export interface UserProfile {
   id: string;
@@ -14,9 +12,9 @@ export interface UserProfile {
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null;
   profile: UserProfile | null;
-  session: Session | null;
+  session: any | null;
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
@@ -27,383 +25,179 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    try {
-      console.log('Fetching profile for user:', userId);
-      
-      if (!supabase) {
-        console.log('No supabase, using mock profile');
-        // Mode démo - créer un profil fictif basé sur l'email
-        const mockProfile: UserProfile = {
-          id: userId,
-          first_name: 'Utilisateur',
-          last_name: 'Test',
-          role: 'client',
-          phone: null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setProfile(mockProfile);
-        return mockProfile;
-      }
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-
-      if (data) {
-        console.log('Profile found:', data);
-        setProfile(data);
-        return data;
-      } else {
-        console.log('No profile found for user:', userId);
-        setProfile(null);
-        return null;
-      }
-    } catch (error) {
-      console.error('Error in fetchProfile:', error);
-      setProfile(null);
-      return null;
-    }
-  };
-
-  const createProfile = async (user: User, userData: any): Promise<UserProfile | null> => {
-    try {
-      console.log('Creating profile for user:', user.id, userData);
-      
-      if (!supabase) {
-        console.log('No supabase, creating mock profile');
-        // Mode démo - créer un profil fictif
-        const mockProfile: UserProfile = {
-          id: user.id,
-          first_name: userData.firstName || 'Utilisateur',
-          last_name: userData.lastName || 'Test',
-          role: userData.role || 'client',
-          phone: userData.phone || null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setProfile(mockProfile);
-        return mockProfile;
-      }
-      
-      const profileData = {
-        id: user.id,
-        first_name: userData.firstName || user.user_metadata?.first_name || 'Utilisateur',
-        last_name: userData.lastName || user.user_metadata?.last_name || '',
-        role: userData.role || user.user_metadata?.role || 'client',
-        phone: userData.phone || null,
-        avatar_url: null
-      };
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert(profileData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating profile:', error);
-        return null;
-      }
-
-      console.log('Profile created successfully:', data);
-      setProfile(data);
-      return data;
-    } catch (error) {
-      console.error('Error in createProfile:', error);
-      return null;
-    }
-  };
-
+  // Simuler un délai de chargement initial
   useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        console.log('Initializing auth...');
-        
-        // Vérifier si Supabase est configuré
-        if (!supabase) {
-          console.warn('Supabase not configured, using mock auth');
-          if (mounted) {
-            setLoading(false);
-          }
-          return;
-        }
-
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-        }
-
-        if (mounted) {
-          console.log('Session found:', !!session, session?.user?.email);
-          
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            const profile = await fetchProfile(session.user.id);
-            
-            // If no profile exists, try to create one from user metadata
-            if (!profile && session.user.user_metadata) {
-              await createProfile(session.user, session.user.user_metadata);
-            }
-          }
-          
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    // Délai court pour éviter le flash de chargement
     const timer = setTimeout(() => {
-      initializeAuth();
-    }, 100);
+      setLoading(false);
+    }, 500);
 
-    // Seulement s'abonner aux changements si Supabase est configuré
-    let subscription: any = null;
-    
-    if (supabase) {
-      const {
-        data: { subscription: authSubscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (!mounted) return;
-
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          let profile = await fetchProfile(session.user.id);
-          
-          // If no profile exists and this is a sign in, try to create one
-          if (!profile && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-            profile = await createProfile(session.user, session.user.user_metadata || {});
-          }
-        } else {
-          setProfile(null);
-        }
-        
-        // Only set loading to false after we've handled the profile
-        if (event !== 'TOKEN_REFRESHED') {
-          setLoading(false);
-        }
-      });
-      
-      subscription = authSubscription;
-    }
-
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-    };
+    return () => clearTimeout(timer);
   }, []);
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      console.log('Signing up user:', email, userData);
+      console.log('🎯 Mode Démo - Inscription simulée:', email, userData.role);
       
-      // Si Supabase n'est pas configuré, simuler l'inscription
-      if (!supabase) {
-        console.log('Mock signup - creating mock user');
-        const mockUser = {
-          id: Date.now().toString(),
-          email,
-          user_metadata: userData
-        };
-        
-        const mockProfile = {
-          id: mockUser.id,
-          first_name: userData.firstName,
-          last_name: userData.lastName,
-          role: userData.role || 'client',
-          phone: userData.phone || null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        
-        // Simuler un délai
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        setUser(mockUser as any);
-        setProfile(mockProfile);
-        
-        return { 
-          user: mockUser, 
-          session: { user: mockUser, access_token: 'mock-token' } 
-        };
-      }
+      // Simuler un délai d'inscription
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const { data, error } = await supabase.auth.signUp({
+      const mockUser = {
+        id: Date.now().toString(),
         email,
-        password,
-        options: {
-          data: {
-            first_name: userData.firstName,
-            last_name: userData.lastName,
-            role: userData.role || 'client',
-            phone: userData.phone || null
-          }
-        }
-      });
-
-      if (error) {
-        console.error('Signup error:', error);
-        throw error;
-      }
-
-      console.log('Signup successful:', data);
-      return data;
+        user_metadata: userData
+      };
+      
+      const mockProfile: UserProfile = {
+        id: mockUser.id,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        role: userData.role || 'client',
+        phone: userData.phone || null,
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const mockSession = { 
+        user: mockUser, 
+        access_token: 'demo-token-' + Date.now() 
+      };
+      
+      setUser(mockUser);
+      setProfile(mockProfile);
+      setSession(mockSession);
+      
+      // Sauvegarder en localStorage pour persistance
+      localStorage.setItem('demo-user', JSON.stringify(mockUser));
+      localStorage.setItem('demo-profile', JSON.stringify(mockProfile));
+      localStorage.setItem('demo-session', JSON.stringify(mockSession));
+      
+      return { 
+        user: mockUser, 
+        session: mockSession 
+      };
     } catch (error) {
-      console.error('Error in signUp:', error);
+      console.error('Erreur inscription démo:', error);
       throw error;
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('Signing in user:', email);
+      console.log('🎯 Mode Démo - Connexion simulée:', email);
       
-      // Si Supabase n'est pas configuré, simuler la connexion
-      if (!supabase) {
-        console.log('Mock signin');
-        
-        // Simuler différents utilisateurs selon l'email
-        let role = 'client';
-        if (email.includes('admin')) role = 'admin';
-        if (email.includes('agent')) role = 'agent';
-        
-        const mockUser = {
-          id: Date.now().toString(),
-          email,
-          user_metadata: { role }
-        };
-        
-        const mockProfile = {
-          id: mockUser.id,
-          first_name: email.split('@')[0].split('.')[0] || 'Utilisateur',
-          last_name: email.split('@')[0].split('.')[1] || 'Test',
-          role: role as 'admin' | 'agent' | 'client',
-          phone: null,
-          avatar_url: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        
-        // Simuler un délai
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Mettre à jour l'état immédiatement
-        setUser(mockUser as any);
-        setProfile(mockProfile);
-        
-        return { 
-          user: mockUser, 
-          session: { user: mockUser, access_token: 'mock-token' } 
-        };
-      }
+      // Simuler un délai de connexion
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Déterminer le rôle selon l'email
+      let role = 'client';
+      if (email.includes('admin')) role = 'admin';
+      if (email.includes('agent')) role = 'agent';
+      
+      const mockUser = {
+        id: Date.now().toString(),
         email,
-        password,
-      });
-
-      if (error) {
-        console.error('Sign in error:', error);
-        throw error;
-      }
-
-      console.log('Sign in successful:', data);
-      return data;
+        user_metadata: { role }
+      };
+      
+      const mockProfile: UserProfile = {
+        id: mockUser.id,
+        first_name: email.split('@')[0].split('.')[0] || 'Utilisateur',
+        last_name: email.split('@')[0].split('.')[1] || 'Démo',
+        role: role as 'admin' | 'agent' | 'client',
+        phone: '+221 77 123 45 67',
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const mockSession = { 
+        user: mockUser, 
+        access_token: 'demo-token-' + Date.now() 
+      };
+      
+      setUser(mockUser);
+      setProfile(mockProfile);
+      setSession(mockSession);
+      
+      // Sauvegarder en localStorage pour persistance
+      localStorage.setItem('demo-user', JSON.stringify(mockUser));
+      localStorage.setItem('demo-profile', JSON.stringify(mockProfile));
+      localStorage.setItem('demo-session', JSON.stringify(mockSession));
+      
+      return { 
+        user: mockUser, 
+        session: mockSession 
+      };
     } catch (error) {
-      console.error('Error in signIn:', error);
+      console.error('Erreur connexion démo:', error);
       throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      console.log('Signing out...');
+      console.log('🎯 Mode Démo - Déconnexion');
       
-      if (supabase) {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error('Sign out error:', error);
-          throw error;
-        }
-      }
-      
-      // Nettoyer complètement l'état
       setProfile(null);
       setUser(null);
       setSession(null);
       
-      // Nettoyer le localStorage si nécessaire
+      // Nettoyer le localStorage
+      localStorage.removeItem('demo-user');
+      localStorage.removeItem('demo-profile');
+      localStorage.removeItem('demo-session');
       localStorage.clear();
       
     } catch (error) {
-      console.error('Error in signOut:', error);
+      console.error('Erreur déconnexion démo:', error);
       throw error;
     }
   };
 
   const updateProfile = async (updates: any) => {
-    if (!user) throw new Error('No user logged in');
+    if (!user) throw new Error('Aucun utilisateur connecté');
 
     try {
-      if (!supabase) {
-        // Mock update
-        const updatedProfile = { ...profile, ...updates };
-        setProfile(updatedProfile);
-        return updatedProfile;
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const updatedProfile = { ...profile, ...updates };
+      setProfile(updatedProfile);
       
-      if (data) {
-        setProfile(data);
-      }
+      // Mettre à jour le localStorage
+      localStorage.setItem('demo-profile', JSON.stringify(updatedProfile));
       
-      return data;
+      return updatedProfile;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Erreur mise à jour profil démo:', error);
       throw error;
     }
   };
+
+  // Restaurer la session depuis localStorage au chargement
+  useEffect(() => {
+    const savedUser = localStorage.getItem('demo-user');
+    const savedProfile = localStorage.getItem('demo-profile');
+    const savedSession = localStorage.getItem('demo-session');
+    
+    if (savedUser && savedProfile && savedSession) {
+      try {
+        setUser(JSON.parse(savedUser));
+        setProfile(JSON.parse(savedProfile));
+        setSession(JSON.parse(savedSession));
+        console.log('🎯 Session démo restaurée depuis localStorage');
+      } catch (error) {
+        console.error('Erreur restauration session démo:', error);
+        // Nettoyer en cas d'erreur
+        localStorage.clear();
+      }
+    }
+    
+    setLoading(false);
+  }, []);
 
   const value = {
     user,
