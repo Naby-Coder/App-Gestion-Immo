@@ -21,10 +21,10 @@ const HomePage = () => {
   };
 
   const cities = [
-    { name: 'Dakar', image: 'https://images.pexels.com/photos/3876958/pexels-photo-3876958.jpeg', count: 45 },
-    { name: 'Thiès', image: 'https://images.pexels.com/photos/2901209/pexels-photo-2901209.jpeg', count: 23 },
-    { name: 'Saint-Louis', image: 'https://images.pexels.com/photos/4371669/pexels-photo-4371669.jpeg', count: 18 },
-    { name: 'Touba', image: 'https://images.pexels.com/photos/5563472/pexels-photo-5563472.jpeg', count: 15 }
+    { name: 'Dakar', image: '/Dakar.jpg', count: 45 },
+    { name: 'Thiès', image: '/Thies.png', count: 23 },
+    { name: 'Saint-Louis', image: '/Saint louis.jpg', count: 18 },
+    { name: 'Touba', image: '/Touba.jpg', count: 15 }
   ];
   
   return (
@@ -95,19 +95,29 @@ const HomePage = () => {
                   viewport={{ once: true }}
                   whileHover={{ y: -5 }}
                   transition={{ duration: 0.3 }}
-                  className="relative rounded-xl overflow-hidden h-60 group"
+                  className="relative rounded-xl overflow-hidden h-60 group shadow-lg hover:shadow-xl transition-shadow duration-300"
                 >
                   <img
                     src={city.image}
-                    alt={city.name}
+                    alt={`${city.name} - Immobilier au Sénégal`}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => {
+                      // Fallback en cas d'erreur de chargement
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.pexels.com/photos/3876958/pexels-photo-3876958.jpeg';
+                    }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                   <div className="absolute bottom-0 left-0 p-6 text-white">
-                    <h3 className="text-xl font-semibold mb-1">{city.name}</h3>
+                    <h3 className="text-xl font-semibold mb-2 drop-shadow-lg">{city.name}</h3>
                     <div className="flex items-center">
-                      <MapPin size={16} className="mr-1" />
-                      <span className="text-sm">{city.count} propriétés</span>
+                      <MapPin size={16} className="mr-2 text-primary-300" />
+                      <span className="text-sm text-gray-200">{city.count} propriétés</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-4 right-4">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                      <Building size={20} className="text-white" />
                     </div>
                   </div>
                 </motion.div>
