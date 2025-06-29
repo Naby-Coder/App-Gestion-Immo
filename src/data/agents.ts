@@ -28,7 +28,7 @@ export const agents: Agent[] = [
     email: 'aissatou.sall@immoexpert.sn',
     phone: '+221 78 345 67 89',
     bio: "Aïssatou a rejoint notre équipe il y a 5 ans après une formation en droit immobilier. Sa connaissance approfondie des aspects juridiques et sa capacité d'écoute lui permettent d'accompagner efficacement nos clients.",
-    avatar: 'https://images.pexels.com/photos/2381068/pexels-photo-2381068.jpeg',
+    avatar: '/Snapchat-1056148261.jpg',
     position: 'Conseillère juridique'
   }
 ];
