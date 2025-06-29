@@ -67,6 +67,7 @@ const LoginPage = () => {
       if (result.session && result.user) {
         setError('');
         console.log('Login successful, user will be redirected by useEffect...');
+        // Ne pas remettre isSubmitting à false ici pour éviter les conflits
       }
       
     } catch (err: any) {

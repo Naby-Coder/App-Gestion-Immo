@@ -105,6 +105,7 @@ const RegisterPage = () => {
         // User is immediately signed in or account created
         setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
         // La redirection sera gérée par useEffect
+        // Ne pas remettre isSubmitting à false ici pour éviter les conflits
       }
       
     } catch (err: any) {
