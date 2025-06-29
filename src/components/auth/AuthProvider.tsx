@@ -37,8 +37,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Fetching profile for user:', userId);
       
       if (!supabase) {
-        console.log('No supabase, skipping profile fetch');
-        return null;
+        console.log('No supabase, using mock profile');
+        // Mode démo - créer un profil fictif basé sur l'email
+        const mockProfile: UserProfile = {
+          id: userId,
+          first_name: 'Utilisateur',
+          last_name: 'Test',
+          role: 'client',
+          phone: null,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setProfile(mockProfile);
+        return mockProfile;
       }
       
       const { data, error } = await supabase
@@ -73,8 +85,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('Creating profile for user:', user.id, userData);
       
       if (!supabase) {
-        console.log('No supabase, skipping profile creation');
-        return null;
+        console.log('No supabase, creating mock profile');
+        // Mode démo - créer un profil fictif
+        const mockProfile: UserProfile = {
+          id: user.id,
+          first_name: userData.firstName || 'Utilisateur',
+          last_name: userData.lastName || 'Test',
+          role: userData.role || 'client',
+          phone: userData.phone || null,
+          avatar_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setProfile(mockProfile);
+        return mockProfile;
       }
       
       const profileData = {
