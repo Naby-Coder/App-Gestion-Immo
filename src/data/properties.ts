@@ -22,7 +22,7 @@ export const properties: Property[] = [
     images: [
       'https://images.pexels.com/photos/1396132/pexels-photo-1396132.jpeg',
       'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg',
-      'https://images.pexels.com/photos/1396127/pexels-photo-1396127.jpeg'
+      '/maxresdefault-5.jpg'
     ],
     createdAt: '2023-05-15T10:30:00Z',
     updatedAt: '2023-05-20T14:45:00Z',
@@ -162,7 +162,7 @@ export const properties: Property[] = [
     images: [
       'https://images.pexels.com/photos/323780/pexels-photo-323780.jpeg',
       'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg',
-      'https://images.pexels.com/photos/1396127/pexels-photo-1396127.jpeg'
+      '/maxresdefault-5.jpg'
     ],
     createdAt: '2023-10-01T09:00:00Z',
     updatedAt: '2023-10-01T09:00:00Z',
