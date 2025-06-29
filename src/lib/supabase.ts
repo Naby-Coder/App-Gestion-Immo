@@ -5,8 +5,24 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let supabase: any = null;
 
-// Vérifier si les variables d'environnement sont définies
-if (supabaseUrl && supabaseAnonKey) {
+// Fonction pour valider l'URL Supabase
+function isValidSupabaseUrl(url: string): boolean {
+  if (!url || url === 'your_supabase_project_url') return false;
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'https:' && urlObj.hostname.includes('supabase');
+  } catch {
+    return false;
+  }
+}
+
+// Fonction pour valider la clé anonyme Supabase
+function isValidSupabaseKey(key: string): boolean {
+  return !(!key || key === 'your_supabase_anon_key' || key.length < 10);
+}
+
+// Vérifier si les variables d'environnement sont définies et valides
+if (supabaseUrl && supabaseAnonKey && isValidSupabaseUrl(supabaseUrl) && isValidSupabaseKey(supabaseAnonKey)) {
   try {
     supabase = createClient(supabaseUrl, supabaseAnonKey);
     console.log('Supabase client initialized successfully');
@@ -15,9 +31,13 @@ if (supabaseUrl && supabaseAnonKey) {
     supabase = null;
   }
 } else {
-  console.warn('Supabase environment variables not found. Running in mock mode.');
-  console.warn('VITE_SUPABASE_URL:', !!supabaseUrl);
-  console.warn('VITE_SUPABASE_ANON_KEY:', !!supabaseAnonKey);
+  console.warn('Supabase configuration incomplete or invalid. Running in mock mode.');
+  console.warn('Please configure your Supabase credentials in the .env file:');
+  console.warn('- VITE_SUPABASE_URL should be your Supabase project URL (e.g., https://your-project.supabase.co)');
+  console.warn('- VITE_SUPABASE_ANON_KEY should be your Supabase anonymous key');
+  console.warn('Current values:');
+  console.warn('- URL valid:', isValidSupabaseUrl(supabaseUrl || ''));
+  console.warn('- Key valid:', isValidSupabaseKey(supabaseAnonKey || ''));
 }
 
 export { supabase };
