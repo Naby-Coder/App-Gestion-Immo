@@ -20,7 +20,7 @@ export const properties: Property[] = [
     },
     features: ['Piscine', 'Jardin', 'Garage double', 'Climatisation', 'Sécurité 24/7', 'Vue mer'],
     images: [
-      'https://images.pexels.com/photos/1396132/pexels-photo-1396132.jpeg',
+      '/maxresdefault-5 copy.jpg',
       'https://images.pexels.com/photos/1396122/pexels-photo-1396122.jpeg',
       '/appartement-vente-vefa-fann-hock-dakar-525x328.jpg'
     ],
