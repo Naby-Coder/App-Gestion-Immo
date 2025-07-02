@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/auth/AuthProvider';
 
 export interface Favorite {
@@ -21,71 +22,56 @@ export function useFavorites() {
     }
 
     try {
-      console.log('🎯 Mode Démo - Chargement des favoris pour:', user.id);
-      
-      // Récupérer les favoris depuis localStorage
-      const savedFavorites = localStorage.getItem(`demo-favorites-${user.id}`);
-      if (savedFavorites) {
-        setFavorites(JSON.parse(savedFavorites));
-      } else {
-        // Favoris par défaut pour la démo
-        const defaultFavorites: Favorite[] = [
-          {
-            id: 'fav-1',
-            user_id: user.id,
-            property_id: '1',
-            created_at: new Date().toISOString()
-          },
-          {
-            id: 'fav-2',
-            user_id: user.id,
-            property_id: '2',
-            created_at: new Date().toISOString()
-          }
-        ];
-        setFavorites(defaultFavorites);
-        localStorage.setItem(`demo-favorites-${user.id}`, JSON.stringify(defaultFavorites));
-      }
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setFavorites(data || []);
     } catch (error) {
-      console.error('Erreur chargement favoris démo:', error);
+      console.error('Error fetching favorites:', error);
     } finally {
       setLoading(false);
     }
   };
 
   const addToFavorites = async (propertyId: string) => {
-    if (!user) return { error: new Error('Utilisateur non connecté') };
+    if (!user) return { error: new Error('User not authenticated') };
 
     try {
-      const newFavorite: Favorite = {
-        id: 'fav-' + Date.now(),
-        user_id: user.id,
-        property_id: propertyId,
-        created_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('favorites')
+        .insert({
+          user_id: user.id,
+          property_id: propertyId
+        })
+        .select()
+        .single();
 
-      const updatedFavorites = [newFavorite, ...favorites];
-      setFavorites(updatedFavorites);
-      
-      // Sauvegarder en localStorage
-      localStorage.setItem(`demo-favorites-${user.id}`, JSON.stringify(updatedFavorites));
-      
-      return { data: newFavorite, error: null };
+      if (error) throw error;
+
+      setFavorites(prev => [data, ...prev]);
+      return { data, error: null };
     } catch (err) {
       return { data: null, error: err };
     }
   };
 
   const removeFromFavorites = async (propertyId: string) => {
-    if (!user) return { error: new Error('Utilisateur non connecté') };
+    if (!user) return { error: new Error('User not authenticated') };
 
     try {
-      const updatedFavorites = favorites.filter(f => f.property_id !== propertyId);
-      setFavorites(updatedFavorites);
-      
-      // Sauvegarder en localStorage
-      localStorage.setItem(`demo-favorites-${user.id}`, JSON.stringify(updatedFavorites));
-      
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('property_id', propertyId);
+
+      if (error) throw error;
+
+      setFavorites(prev => prev.filter(f => f.property_id !== propertyId));
       return { error: null };
     } catch (err) {
       return { error: err };

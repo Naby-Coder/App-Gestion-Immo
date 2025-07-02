@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { properties as mockProperties } from '../data/properties';
+import { supabase } from '../lib/supabase';
 
 export interface Property {
   id: string;
@@ -39,38 +39,34 @@ export function useProperties() {
   }) => {
     try {
       setLoading(true);
-      console.log('🎯 Mode Démo - Chargement des biens immobiliers');
-      
-      // Simuler un délai de chargement
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      let filteredProperties = [...mockProperties];
+      let query = supabase.from('properties').select('*');
 
       if (filters?.type) {
-        filteredProperties = filteredProperties.filter(p => p.type === filters.type);
+        query = query.eq('type', filters.type);
       }
       if (filters?.status) {
-        filteredProperties = filteredProperties.filter(p => p.status === filters.status);
+        query = query.eq('status', filters.status);
       }
       if (filters?.city) {
-        filteredProperties = filteredProperties.filter(p => 
-          p.address.city.toLowerCase().includes(filters.city!.toLowerCase())
-        );
+        query = query.ilike('city', `%${filters.city}%`);
       }
       if (filters?.minPrice) {
-        filteredProperties = filteredProperties.filter(p => p.price >= filters.minPrice!);
+        query = query.gte('price', filters.minPrice);
       }
       if (filters?.maxPrice) {
-        filteredProperties = filteredProperties.filter(p => p.price <= filters.maxPrice!);
+        query = query.lte('price', filters.maxPrice);
       }
       if (filters?.featured !== undefined) {
-        filteredProperties = filteredProperties.filter(p => p.featured === filters.featured);
+        query = query.eq('featured', filters.featured);
       }
 
-      setProperties(filteredProperties);
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProperties(data || []);
       setError(null);
     } catch (err) {
-      setError('Erreur lors du chargement des biens');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -78,32 +74,32 @@ export function useProperties() {
 
   const getProperty = async (id: string) => {
     try {
-      console.log('🎯 Mode Démo - Récupération du bien:', id);
-      
-      // Simuler un délai
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const property = mockProperties.find(p => p.id === id);
-      return property || null;
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
     } catch (err) {
-      console.error('Erreur récupération bien démo:', err);
+      console.error('Error fetching property:', err);
       return null;
     }
   };
 
   const createProperty = async (propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      console.log('🎯 Mode Démo - Création d\'un bien');
-      
-      const newProperty = {
-        ...propertyData,
-        id: Date.now().toString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('properties')
+        .insert(propertyData)
+        .select()
+        .single();
 
-      setProperties(prev => [newProperty, ...prev]);
-      return { data: newProperty, error: null };
+      if (error) throw error;
+
+      setProperties(prev => [data, ...prev]);
+      return { data, error: null };
     } catch (err) {
       return { data: null, error: err };
     }
@@ -111,18 +107,17 @@ export function useProperties() {
 
   const updateProperty = async (id: string, updates: Partial<Property>) => {
     try {
-      console.log('🎯 Mode Démo - Mise à jour du bien:', id);
-      
-      const updatedProperty = {
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('properties')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
 
-      setProperties(prev => prev.map(p => 
-        p.id === id ? { ...p, ...updatedProperty } : p
-      ));
-      
-      return { data: updatedProperty, error: null };
+      if (error) throw error;
+
+      setProperties(prev => prev.map(p => p.id === id ? data : p));
+      return { data, error: null };
     } catch (err) {
       return { data: null, error: err };
     }
@@ -130,8 +125,13 @@ export function useProperties() {
 
   const deleteProperty = async (id: string) => {
     try {
-      console.log('🎯 Mode Démo - Suppression du bien:', id);
-      
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       setProperties(prev => prev.filter(p => p.id !== id));
       return { error: null };
     } catch (err) {
