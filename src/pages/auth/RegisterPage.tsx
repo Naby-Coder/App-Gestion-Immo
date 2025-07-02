@@ -4,7 +4,7 @@ import { Mail, Lock, User, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
-  const { signUp, loading: authLoading, user, profile } = useAuth();
+  const { signUp, signOut, loading: authLoading, user, profile } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -19,9 +19,29 @@ const RegisterPage = () => {
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirection automatique si l'utilisateur est déjà connecté
+  // Déconnecter automatiquement l'utilisateur au chargement de la page d'inscription
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    const handleSignOut = async () => {
+      if (user && !authLoading) {
+        console.log('Utilisateur détecté sur la page d\'inscription, déconnexion...');
+        try {
+          await signOut();
+        } catch (error) {
+          console.error('Erreur lors de la déconnexion:', error);
+        }
+      }
+    };
+
+    if (!authLoading) {
+      handleSignOut();
+    }
+  }, [user, authLoading, signOut]);
+
+  // Redirection automatique si l'utilisateur est connecté APRÈS une inscription réussie
+  useEffect(() => {
+    if (!authLoading && user && profile && !isSubmitting) {
+      console.log('Utilisateur inscrit avec succès, redirection...', profile.role);
+      
       const dashboardRoutes = {
         admin: '/admin',
         agent: '/admin',
@@ -31,7 +51,7 @@ const RegisterPage = () => {
       const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate, isSubmitting]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -50,8 +70,8 @@ const RegisterPage = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    if (formData.password.length < 1) {
+      setError('Le mot de passe est requis');
       return;
     }
 
@@ -63,6 +83,8 @@ const RegisterPage = () => {
     setIsSubmitting(true);
 
     try {
+      console.log('Tentative d\'inscription:', formData.email, formData.role);
+      
       const result = await signUp(formData.email, formData.password, {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -70,9 +92,12 @@ const RegisterPage = () => {
         role: formData.role
       });
 
+      console.log('Résultat de l\'inscription:', result);
+
       if (result.user && !result.session) {
         // User needs to confirm email
         setSuccess('Un email de confirmation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation avant de vous connecter.');
+        setIsSubmitting(false);
         return;
       }
 
@@ -80,6 +105,7 @@ const RegisterPage = () => {
         // User is immediately signed in or account created
         setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
         // La redirection sera gérée par useEffect
+        // Ne pas remettre isSubmitting à false ici pour éviter les conflits
       }
       
     } catch (err: any) {
@@ -99,18 +125,17 @@ const RegisterPage = () => {
       }
       
       setError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Afficher le spinner pendant le chargement initial
-  if (authLoading) {
+  // Afficher le spinner SEULEMENT si on est en train de soumettre ET qu'il n'y a pas d'erreur
+  if (isSubmitting && !error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <p className="text-gray-600">Création du compte en cours...</p>
         </div>
       </div>
     );
@@ -283,7 +308,7 @@ const RegisterPage = () => {
                   disabled={isSubmitting}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">Au moins 6 caractères</p>
+              <p className="mt-1 text-xs text-gray-500">N'importe quel mot de passe en mode démo</p>
             </div>
 
             <div>
@@ -325,6 +350,24 @@ const RegisterPage = () => {
               </button>
             </div>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">🎯 Mode Démo</span>
+              </div>
+            </div>
+
+            <div className="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-md">
+              <p className="font-medium text-gray-700 mb-1">✨ Application en Mode Démo</p>
+              <p>Créez un compte avec n'importe quelles informations pour tester l'application. Votre choix de rôle déterminera l'interface à laquelle vous aurez accès.</p>
+              <p className="mt-2">• Aucune base de données requise</p>
+              <p>• Parfait pour les présentations locales</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
