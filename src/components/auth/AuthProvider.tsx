@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import type { User, Session } from '@supabase/supabase-js';
 
 export interface UserProfile {
   id: string;
@@ -12,9 +14,9 @@ export interface UserProfile {
 }
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   profile: UserProfile | null;
-  session: any | null;
+  session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, userData: any) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
@@ -25,132 +27,139 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [session, setSession] = useState<any | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Récupérer la session initiale
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Écouter les changements d'authentification
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Erreur lors de la récupération du profil:', error);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      console.log('🎯 Mode Démo - Inscription simulée:', email, userData.role);
-      
-      // Simuler un délai d'inscription
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser = {
-        id: Date.now().toString(),
+      const { data, error } = await supabase.auth.signUp({
         email,
-        user_metadata: userData
-      };
-      
-      const mockProfile: UserProfile = {
-        id: mockUser.id,
-        first_name: userData.firstName,
-        last_name: userData.lastName,
-        role: userData.role || 'client',
-        phone: userData.phone || null,
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      const mockSession = { 
-        user: mockUser, 
-        access_token: 'demo-token-' + Date.now() 
-      };
-      
-      setUser(mockUser);
-      setProfile(mockProfile);
-      setSession(mockSession);
-      
-      // Sauvegarder en localStorage pour persistance
-      localStorage.setItem('demo-user', JSON.stringify(mockUser));
-      localStorage.setItem('demo-profile', JSON.stringify(mockProfile));
-      localStorage.setItem('demo-session', JSON.stringify(mockSession));
-      
-      return { 
-        user: mockUser, 
-        session: mockSession 
-      };
+        password,
+        options: {
+          data: {
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            role: userData.role,
+            phone: userData.phone,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // Créer le profil utilisateur
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            role: userData.role || 'client',
+            phone: userData.phone || null,
+          });
+
+        if (profileError) {
+          console.error('Erreur lors de la création du profil:', profileError);
+        }
+
+        // Créer un enregistrement agent ou client selon le rôle
+        if (userData.role === 'agent') {
+          await supabase.from('agents').insert({
+            user_id: data.user.id,
+            position: 'Agent immobilier',
+          });
+        } else if (userData.role === 'client') {
+          await supabase.from('clients').insert({
+            user_id: data.user.id,
+          });
+        }
+      }
+
+      return data;
     } catch (error) {
-      console.error('Erreur inscription démo:', error);
+      console.error('Erreur lors de l\'inscription:', error);
       throw error;
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🎯 Mode Démo - Connexion simulée:', email);
-      
-      // Validation basique
-      if (!email || !password) {
-        throw new Error('Email et mot de passe requis');
-      }
-      
-      // Simuler un délai de connexion
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Déterminer le rôle selon l'email
-      let role = 'client';
-      if (email.toLowerCase().includes('admin')) role = 'admin';
-      if (email.toLowerCase().includes('agent')) role = 'agent';
-      
-      const mockUser = {
-        id: Date.now().toString(),
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        user_metadata: { role }
-      };
-      
-      const mockProfile: UserProfile = {
-        id: mockUser.id,
-        first_name: email.split('@')[0].split('.')[0] || 'Utilisateur',
-        last_name: email.split('@')[0].split('.')[1] || 'Démo',
-        role: role as 'admin' | 'agent' | 'client',
-        phone: '+221 77 123 45 67',
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      const mockSession = { 
-        user: mockUser, 
-        access_token: 'demo-token-' + Date.now() 
-      };
-      
-      setUser(mockUser);
-      setProfile(mockProfile);
-      setSession(mockSession);
-      
-      // Sauvegarder en localStorage pour persistance
-      localStorage.setItem('demo-user', JSON.stringify(mockUser));
-      localStorage.setItem('demo-profile', JSON.stringify(mockProfile));
-      localStorage.setItem('demo-session', JSON.stringify(mockSession));
-      
-      return { 
-        user: mockUser, 
-        session: mockSession 
-      };
+        password,
+      });
+
+      if (error) throw error;
+      return data;
     } catch (error) {
-      console.error('Erreur connexion démo:', error);
+      console.error('Erreur lors de la connexion:', error);
       throw error;
     }
   };
 
   const signOut = async () => {
     try {
-      console.log('🎯 Mode Démo - Déconnexion');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       
       setProfile(null);
       setUser(null);
       setSession(null);
-      
-      // Nettoyer le localStorage
-      localStorage.removeItem('demo-user');
-      localStorage.removeItem('demo-profile');
-      localStorage.removeItem('demo-session');
-      
     } catch (error) {
-      console.error('Erreur déconnexion démo:', error);
+      console.error('Erreur lors de la déconnexion:', error);
       throw error;
     }
   };
@@ -159,48 +168,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) throw new Error('Aucun utilisateur connecté');
 
     try {
-      const updatedProfile = { ...profile, ...updates };
-      setProfile(updatedProfile);
-      
-      // Mettre à jour le localStorage
-      localStorage.setItem('demo-profile', JSON.stringify(updatedProfile));
-      
-      return updatedProfile;
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setProfile(data);
+      return data;
     } catch (error) {
-      console.error('Erreur mise à jour profil démo:', error);
+      console.error('Erreur lors de la mise à jour du profil:', error);
       throw error;
     }
   };
-
-  // Initialisation au chargement
-  useEffect(() => {
-    const initializeAuth = () => {
-      try {
-        const savedUser = localStorage.getItem('demo-user');
-        const savedProfile = localStorage.getItem('demo-profile');
-        const savedSession = localStorage.getItem('demo-session');
-        
-        if (savedUser && savedProfile && savedSession) {
-          setUser(JSON.parse(savedUser));
-          setProfile(JSON.parse(savedProfile));
-          setSession(JSON.parse(savedSession));
-          console.log('🎯 Session démo restaurée depuis localStorage');
-        }
-      } catch (error) {
-        console.error('Erreur restauration session démo:', error);
-        // Nettoyer en cas d'erreur
-        localStorage.removeItem('demo-user');
-        localStorage.removeItem('demo-profile');
-        localStorage.removeItem('demo-session');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Délai court pour éviter le flash
-    const timer = setTimeout(initializeAuth, 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   const value = {
     user,

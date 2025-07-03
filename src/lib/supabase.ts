@@ -1,13 +1,15 @@
-// Mode démo - Pas de connexion Supabase
-// L'application fonctionne entièrement en local avec des données fictives
+import { createClient } from '@supabase/supabase-js';
 
-console.log('🎯 Mode Démo Activé - Aucune connexion base de données requise');
-console.log('📱 Application prête pour présentation locale');
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Pas de client Supabase - tout est en mode démo
-export const supabase = null;
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Variables d\'environnement Supabase manquantes');
+}
 
-// Types pour TypeScript (gardés pour compatibilité)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Types pour TypeScript
 export type Database = {
   public: {
     Tables: {

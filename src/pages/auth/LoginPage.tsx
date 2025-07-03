@@ -4,7 +4,7 @@ import { Eye, EyeOff, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const LoginPage = () => {
-  const { signIn, signOut, loading: authLoading, user, profile } = useAuth();
+  const { signIn, loading: authLoading, user, profile } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,29 +13,9 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Déconnecter automatiquement l'utilisateur au chargement de la page de connexion
+  // Redirection automatique si l'utilisateur est connecté
   useEffect(() => {
-    const handleSignOut = async () => {
-      if (user && !authLoading) {
-        console.log('Utilisateur détecté sur la page de connexion, déconnexion...');
-        try {
-          await signOut();
-        } catch (error) {
-          console.error('Erreur lors de la déconnexion:', error);
-        }
-      }
-    };
-
-    if (!authLoading) {
-      handleSignOut();
-    }
-  }, [user, authLoading, signOut]);
-
-  // Redirection automatique si l'utilisateur est connecté APRÈS une connexion réussie
-  useEffect(() => {
-    if (!authLoading && user && profile && !isSubmitting) {
-      console.log('Utilisateur connecté avec succès, redirection...', profile.role);
-      
+    if (!authLoading && user && profile) {
       const dashboardRoutes = {
         admin: '/admin',
         agent: '/admin',
@@ -45,7 +25,7 @@ const LoginPage = () => {
       const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, authLoading, navigate, isSubmitting]);
+  }, [user, profile, authLoading, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,17 +39,8 @@ const LoginPage = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Tentative de connexion avec:', email);
-      
-      const result = await signIn(email, password);
-      console.log('Résultat de la connexion:', result);
-      
-      if (result.session && result.user) {
-        setError('');
-        console.log('Connexion réussie, l\'utilisateur sera redirigé par useEffect...');
-        // Ne pas remettre isSubmitting à false ici pour éviter les conflits
-      }
-      
+      await signIn(email, password);
+      // La redirection sera gérée par useEffect
     } catch (err: any) {
       console.error('Erreur de connexion:', err);
       
@@ -88,17 +59,17 @@ const LoginPage = () => {
       }
       
       setError(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Afficher le spinner SEULEMENT si on est en train de soumettre ET qu'il n'y a pas d'erreur
-  if (isSubmitting && !error) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Connexion en cours...</p>
+          <p className="text-gray-600">Chargement...</p>
         </div>
       </div>
     );
@@ -232,27 +203,21 @@ const LoginPage = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">🎯 Mode Démo Activé</span>
+                <span className="px-2 bg-white text-gray-500">🔗 Connecté à Supabase</span>
               </div>
             </div>
 
             <div className="mt-6 text-sm text-gray-600">
               <div className="space-y-3 text-xs bg-gray-50 p-4 rounded-md">
                 <div>
-                  <p className="font-medium text-gray-700 mb-2">✨ Application en Mode Démo</p>
-                  <p className="text-gray-600">• Aucune base de données requise</p>
-                  <p className="text-gray-600">• Parfait pour les présentations locales</p>
-                  <p className="text-gray-600">• Utilisez n'importe quel email et mot de passe</p>
+                  <p className="font-medium text-gray-700 mb-2">✨ Application connectée à Supabase</p>
+                  <p className="text-gray-600">• Base de données PostgreSQL</p>
+                  <p className="text-gray-600">• Authentification sécurisée</p>
+                  <p className="text-gray-600">• Données synchronisées en temps réel</p>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-700">📧 Exemples d'emails :</p>
-                  <p className="text-gray-600">• <span className="font-medium">admin@test.com</span> → Interface Admin</p>
-                  <p className="text-gray-600">• <span className="font-medium">agent@test.com</span> → Interface Agent</p>
-                  <p className="text-gray-600">• <span className="font-medium">client@test.com</span> → Espace Client</p>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-700">🔑 Mot de passe :</p>
-                  <p className="text-gray-600">• N'importe quel mot de passe (ex: 123456)</p>
+                  <p className="font-medium text-gray-700">🔐 Connexion sécurisée</p>
+                  <p className="text-gray-600">Utilisez vos identifiants pour accéder à votre espace</p>
                 </div>
               </div>
             </div>
