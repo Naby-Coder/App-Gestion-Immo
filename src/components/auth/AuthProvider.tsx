@@ -33,21 +33,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Récupérer la session initiale
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          console.error('Erreur lors de la récupération de la session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation de l\'auth:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    });
+    };
+    
+    initializeAuth();
 
     // Écouter les changements d'authentification
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -59,10 +83,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -71,12 +103,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Erreur lors de la récupération du profil:', error);
+        // Si le profil n'existe pas, ce n'est pas forcément une erreur critique
+        if (error.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('Erreur lors de la récupération du profil:', error);
+        }
+        setProfile(null);
       } else {
         setProfile(data);
       }
     } catch (error) {
       console.error('Erreur lors de la récupération du profil:', error);
+      setProfile(null);
     } finally {
       setLoading(false);
     }

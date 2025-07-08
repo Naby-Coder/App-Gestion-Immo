@@ -12,18 +12,26 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [redirecting, setRedirecting] = useState(false);
 
   // Redirection automatique si l'utilisateur est connecté
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    if (!authLoading && user) {
+      setRedirecting(true);
+      
       const dashboardRoutes = {
         admin: '/admin',
-        agent: '/admin',
+        agent: '/admin', 
         client: '/espace-client'
       };
       
-      const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
-      navigate(targetRoute, { replace: true });
+      // Si on a un profil, utiliser le rôle, sinon rediriger vers l'espace client par défaut
+      const targetRoute = profile?.role ? dashboardRoutes[profile.role] : '/espace-client';
+      
+      // Petit délai pour éviter les problèmes de navigation
+      setTimeout(() => {
+        navigate(targetRoute, { replace: true });
+      }, 100);
     }
   }, [user, profile, authLoading, navigate]);
   
@@ -64,12 +72,14 @@ const LoginPage = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || redirecting) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <p className="text-gray-600">
+            {redirecting ? 'Redirection en cours...' : 'Chargement...'}
+          </p>
         </div>
       </div>
     );
