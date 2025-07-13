@@ -94,6 +94,7 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
+        )}
         {profile?.role === 'admin' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between">
