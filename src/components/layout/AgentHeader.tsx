@@ -1,5 +1,6 @@
 import { Menu, Bell, User, ChevronDown, X } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 
 interface AgentHeaderProps {
