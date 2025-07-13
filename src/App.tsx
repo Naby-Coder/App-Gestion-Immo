@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './components/auth/AuthProvider';
+import { SupabaseAuthProvider } from './components/auth/SupabaseAuthProvider';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
@@ -34,7 +34,7 @@ import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
-    <AuthProvider>
+    <SupabaseAuthProvider>
       <Routes>
         {/* Routes publiques */}
         <Route path="/" element={<Layout />}>
@@ -98,7 +98,7 @@ function App() {
         {/* Route 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </AuthProvider>
+    </SupabaseAuthProvider>
   );
 }
 
