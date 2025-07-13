@@ -1,13 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FileText, Eye, MessageSquare, Calendar, CheckCircle, X, Edit } from 'lucide-react';
-import { clientRequests } from '../../data/clientData';
+import { mockStorage } from '../../lib/mockData';
+import { useAuth } from '../../components/auth/AuthProvider';
 import { properties } from '../../data/properties';
 import { formatDate } from '../../utils/formatters';
 
 const ClientRequests = () => {
-  const [requests, setRequests] = useState(clientRequests);
+  const { user } = useAuth();
+  const [requests, setRequests] = useState<any[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadRequests();
+    }
+  }, [user]);
+
+  const loadRequests = async () => {
+    try {
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const allRequests = mockStorage.get('contactRequests') || [];
+      const userRequests = allRequests.filter((req: any) => req.email === user?.email);
+      setRequests(userRequests);
+    } catch (error) {
+      console.error('Erreur lors du chargement des demandes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -48,14 +72,36 @@ const ClientRequests = () => {
 
   const cancelRequest = (requestId: string) => {
     if (confirm('Êtes-vous sûr de vouloir annuler cette demande ?')) {
+      mockStorage.remove('contactRequests', requestId);
       setRequests(prev => prev.filter(req => req.id !== requestId));
       alert('Demande annulée avec succès');
     }
   };
 
   const followUpRequest = (request: any) => {
+    // Créer un nouveau message de relance
+    const followUpMessage = {
+      id: Date.now().toString(),
+      senderId: user?.id,
+      receiverId: request.assignedTo || '2', // Agent par défaut
+      subject: `Relance: ${getPropertyTitle(request.propertyId)}`,
+      content: `Bonjour,\n\nJe souhaiterais avoir des nouvelles concernant ma demande du ${formatDate(request.createdAt)} pour le bien "${getPropertyTitle(request.propertyId)}".\n\nMerci de me tenir informé(e).\n\nCordialement,\n${user?.firstName} ${user?.lastName}`,
+      read: false,
+      createdAt: new Date().toISOString(),
+      propertyId: request.propertyId
+    };
+
+    mockStorage.add('messages', followUpMessage);
     alert(`Relance envoyée pour la demande concernant: ${getPropertyTitle(request.propertyId)}`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>

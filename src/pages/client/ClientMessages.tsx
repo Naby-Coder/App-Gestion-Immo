@@ -1,16 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare, Mail, MailOpen, Reply, Trash2, Send, X } from 'lucide-react';
-import { messages } from '../../data/clientData';
+import { mockStorage } from '../../lib/mockData';
+import { useAuth } from '../../components/auth/AuthProvider';
 import { formatDate } from '../../utils/formatters';
 
 const ClientMessages = () => {
-  const [messagesList, setMessagesList] = useState(messages);
+  const { user } = useAuth();
+  const [messagesList, setMessagesList] = useState<any[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [replyContent, setReplyContent] = useState('');
   const [replySubject, setReplySubject] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadMessages();
+    }
+  }, [user]);
+
+  const loadMessages = async () => {
+    try {
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const allMessages = mockStorage.get('messages') || [];
+      const userMessages = allMessages.filter((msg: any) => 
+        msg.receiverId === user?.id || msg.senderId === user?.id
+      );
+      setMessagesList(userMessages);
+    } catch (error) {
+      console.error('Erreur lors du chargement des messages:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const markAsRead = (messageId: string) => {
+    const allMessages = mockStorage.get('messages') || [];
+    const updatedMessages = allMessages.map((msg: any) => 
+      msg.id === messageId ? { ...msg, read: true } : msg
+    );
+    mockStorage.set('messages', updatedMessages);
+    
     setMessagesList(prev => 
       prev.map(msg => 
         msg.id === messageId ? { ...msg, read: true } : msg
@@ -20,6 +52,7 @@ const ClientMessages = () => {
 
   const deleteMessage = (messageId: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) {
+      mockStorage.remove('messages', messageId);
       setMessagesList(prev => prev.filter(msg => msg.id !== messageId));
       if (selectedMessage === messageId) {
         setSelectedMessage(null);
@@ -39,17 +72,17 @@ const ClientMessages = () => {
       return;
     }
 
-    // Simuler l'envoi du message
     const newMessage = {
       id: Date.now().toString(),
-      senderId: 'client-1',
-      receiverId: 'agent-1',
+      senderId: user?.id,
+      receiverId: messagesList.find(m => m.id === selectedMessage)?.senderId,
       subject: replySubject,
       content: replyContent,
       read: true,
       createdAt: new Date().toISOString()
     };
 
+    mockStorage.add('messages', newMessage);
     setMessagesList(prev => [newMessage, ...prev]);
     setIsReplyModalOpen(false);
     setReplyContent('');
@@ -57,7 +90,15 @@ const ClientMessages = () => {
     alert('Message envoyé avec succès !');
   };
 
-  const unreadCount = messagesList.filter(msg => !msg.read).length;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  const unreadCount = messagesList.filter(msg => !msg.read && msg.receiverId === user?.id).length;
   const selectedMsg = messagesList.find(msg => msg.id === selectedMessage);
 
   return (
@@ -95,7 +136,9 @@ const ClientMessages = () => {
                     key={message.id}
                     onClick={() => {
                       setSelectedMessage(message.id);
-                      if (!message.read) markAsRead(message.id);
+                      if (!message.read && message.receiverId === user?.id) {
+                        markAsRead(message.id);
+                      }
                     }}
                     className={`p-4 cursor-pointer hover:bg-gray-50 ${
                       selectedMessage === message.id ? 'bg-primary-50 border-r-2 border-primary-500' : ''
@@ -103,20 +146,24 @@ const ClientMessages = () => {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-2 mb-1">
-                        {message.read ? (
+                        {message.read || message.senderId === user?.id ? (
                           <MailOpen size={16} className="text-gray-400" />
                         ) : (
                           <Mail size={16} className="text-primary-600" />
                         )}
-                        <span className={`text-sm ${message.read ? 'text-gray-600' : 'text-gray-900 font-medium'}`}>
-                          Agent ImmoExpert
+                        <span className={`text-sm ${
+                          message.read || message.senderId === user?.id ? 'text-gray-600' : 'text-gray-900 font-medium'
+                        }`}>
+                          {message.senderId === user?.id ? 'Moi' : 'Agent ImmoExpert'}
                         </span>
                       </div>
                       <span className="text-xs text-gray-500">
                         {formatDate(message.createdAt)}
                       </span>
                     </div>
-                    <h4 className={`text-sm mb-1 line-clamp-1 ${message.read ? 'text-gray-700' : 'text-gray-900 font-medium'}`}>
+                    <h4 className={`text-sm mb-1 line-clamp-1 ${
+                      message.read || message.senderId === user?.id ? 'text-gray-700' : 'text-gray-900 font-medium'
+                    }`}>
                       {message.subject}
                     </h4>
                     <p className="text-xs text-gray-500 line-clamp-2">
@@ -140,18 +187,22 @@ const ClientMessages = () => {
                       {selectedMsg.subject}
                     </h2>
                     <div className="flex items-center text-sm text-gray-600">
-                      <span className="mr-4">De: Agent ImmoExpert</span>
+                      <span className="mr-4">
+                        De: {selectedMsg.senderId === user?.id ? 'Moi' : 'Agent ImmoExpert'}
+                      </span>
                       <span>{formatDate(selectedMsg.createdAt)}</span>
                     </div>
                   </div>
                   <div className="flex space-x-2">
-                    <button 
-                      onClick={() => handleReply(selectedMsg)}
-                      className="p-2 text-gray-400 hover:text-primary-600 rounded-md hover:bg-gray-100"
-                      title="Répondre"
-                    >
-                      <Reply size={18} />
-                    </button>
+                    {selectedMsg.senderId !== user?.id && (
+                      <button 
+                        onClick={() => handleReply(selectedMsg)}
+                        className="p-2 text-gray-400 hover:text-primary-600 rounded-md hover:bg-gray-100"
+                        title="Répondre"
+                      >
+                        <Reply size={18} />
+                      </button>
+                    )}
                     <button 
                       onClick={() => deleteMessage(selectedMsg.id)}
                       className="p-2 text-gray-400 hover:text-red-600 rounded-md hover:bg-gray-100"
@@ -170,15 +221,17 @@ const ClientMessages = () => {
                   </p>
                 </div>
                 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <button 
-                    onClick={() => handleReply(selectedMsg)}
-                    className="btn-primary"
-                  >
-                    <Reply size={16} className="mr-2" />
-                    Répondre
-                  </button>
-                </div>
+                {selectedMsg.senderId !== user?.id && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <button 
+                      onClick={() => handleReply(selectedMsg)}
+                      className="btn-primary"
+                    >
+                      <Reply size={16} className="mr-2" />
+                      Répondre
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

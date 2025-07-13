@@ -25,15 +25,13 @@ const LoginPage = () => {
         client: '/espace-client'
       };
       
-      // Si on a un profil, utiliser le rôle, sinon rediriger vers l'espace client par défaut
-      const targetRoute = profile?.role ? dashboardRoutes[profile.role] : '/espace-client';
+      const targetRoute = user.role ? dashboardRoutes[user.role] : '/espace-client';
       
-      // Petit délai pour éviter les problèmes de navigation
       setTimeout(() => {
         navigate(targetRoute, { replace: true });
       }, 100);
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, authLoading, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,22 +49,7 @@ const LoginPage = () => {
       // La redirection sera gérée par useEffect
     } catch (err: any) {
       console.error('Erreur de connexion:', err);
-      
-      let errorMessage = 'Une erreur est survenue lors de la connexion.';
-      
-      if (err.message?.includes('Invalid login credentials') || 
-          err.message?.includes('invalid_credentials') ||
-          err.message?.includes('Invalid email or password')) {
-        errorMessage = 'Email ou mot de passe incorrect. Veuillez vérifier vos identifiants.';
-      } else if (err.message?.includes('Email not confirmed')) {
-        errorMessage = 'Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception.';
-      } else if (err.message?.includes('Too many requests')) {
-        errorMessage = 'Trop de tentatives de connexion. Veuillez patienter quelques minutes.';
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+      setError(err.message || 'Une erreur est survenue lors de la connexion.');
     } finally {
       setIsSubmitting(false);
     }
@@ -213,21 +196,35 @@ const LoginPage = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">🔗 Connecté à Supabase</span>
+                <span className="px-2 bg-white text-gray-500">💾 Données fictives</span>
               </div>
             </div>
 
             <div className="mt-6 text-sm text-gray-600">
               <div className="space-y-3 text-xs bg-gray-50 p-4 rounded-md">
                 <div>
-                  <p className="font-medium text-gray-700 mb-2">✨ Application connectée à Supabase</p>
-                  <p className="text-gray-600">• Base de données PostgreSQL</p>
-                  <p className="text-gray-600">• Authentification sécurisée</p>
-                  <p className="text-gray-600">• Données synchronisées en temps réel</p>
+                  <p className="font-medium text-gray-700 mb-2">🔐 Comptes de test disponibles :</p>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="font-medium text-red-600">Admin :</p>
+                      <p>Email: mouhamed.ndione@immoexpert.sn</p>
+                      <p>Mot de passe: admin123</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-blue-600">Agent :</p>
+                      <p>Email: fadel.fall@immoexpert.sn</p>
+                      <p>Mot de passe: agent123</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-green-600">Client :</p>
+                      <p>Email: arame.diop@email.com</p>
+                      <p>Mot de passe: client123</p>
+                    </div>
+                  </div>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-700">🔐 Connexion sécurisée</p>
-                  <p className="text-gray-600">Utilisez vos identifiants pour accéder à votre espace</p>
+                  <p className="font-medium text-gray-700">💾 Application avec données fictives</p>
+                  <p className="text-gray-600">Toutes les données sont stockées localement</p>
                 </div>
               </div>
             </div>
