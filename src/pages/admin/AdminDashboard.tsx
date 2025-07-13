@@ -1,9 +1,8 @@
 import { 
   Building, Users, MessageSquare, CreditCard, TrendingUp, 
-  Percent, Activity, Calendar 
+  Percent, Activity, Calendar, Shield, UserCheck
 } from 'lucide-react';
 import { properties } from '../../data/properties';
-import { clients } from '../../data/clients';
 import { contactRequests } from '../../data/requests';
 import { formatPrice } from '../../utils/formatters';
 
@@ -12,7 +11,10 @@ const AdminDashboard = () => {
   const totalProperties = properties.length;
   const propertiesForSale = properties.filter(p => p.status === 'Vente').length;
   const propertiesForRent = properties.filter(p => p.status === 'Location').length;
-  const totalClients = clients.length;
+  const totalUsers = 156; // Simulation du nombre total d'utilisateurs
+  const totalAdmins = 2;
+  const totalAgents = 8;
+  const totalClients = 146;
   const newRequests = contactRequests.filter(r => r.status === 'Nouveau').length;
   
   // Données de ventes mensuelles réalistes pour le Sénégal (en XOF)
@@ -56,8 +58,8 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Clients</p>
-              <p className="text-2xl font-bold">{totalClients}</p>
+              <p className="text-sm font-medium text-gray-500">Utilisateurs</p>
+              <p className="text-2xl font-bold">{totalUsers}</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-secondary-100 flex items-center justify-center">
               <Users className="h-6 w-6 text-secondary-600" />
@@ -65,9 +67,22 @@ const AdminDashboard = () => {
           </div>
           <div className="mt-4 flex justify-between items-center">
             <div className="flex items-center">
-              <span className="text-xs font-medium text-success-500">+3 nouveaux ce mois</span>
+              <div className="flex space-x-4 text-xs">
+                <span className="flex items-center">
+                  <Shield size={12} className="mr-1 text-red-500" />
+                  {totalAdmins} admins
+                </span>
+                <span className="flex items-center">
+                  <UserCheck size={12} className="mr-1 text-blue-500" />
+                  {totalAgents} agents
+                </span>
+                <span className="flex items-center">
+                  <Users size={12} className="mr-1 text-green-500" />
+                  {totalClients} clients
+                </span>
+              </div>
             </div>
-            <span className="text-xs font-medium text-gray-500">+15% vs mois dernier</span>
+            <span className="text-xs font-medium text-gray-500">+12 ce mois</span>
           </div>
         </div>
         
