@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Heart, MessageSquare, FileText, 
   Calendar, User, LogOut, X 
 } from 'lucide-react';
+import { useAuth } from '../auth/AuthProvider';
 
 interface ClientSidebarProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface ClientSidebarProps {
 
 const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
   const location = useLocation();
+  const { signOut } = useAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path 
@@ -26,6 +28,14 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
     { path: '/espace-client/rendez-vous', icon: <Calendar size={20} />, label: 'Rendez-vous' },
     { path: '/espace-client/profil', icon: <User size={20} />, label: 'Mon profil' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
 
   return (
     <>
@@ -89,13 +99,13 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
           
           {/* Logout button */}
           <div className="px-2 mt-auto">
-            <Link 
-              to="/login"
+            <button 
+              onClick={handleLogout}
               className="flex items-center px-4 py-3 text-sm font-medium text-gray-300 rounded-md hover:bg-red-700 hover:text-white transition-colors duration-200"
             >
               <LogOut size={20} className="mr-3" />
               Déconnexion
-            </Link>
+            </button>
           </div>
         </div>
       </aside>

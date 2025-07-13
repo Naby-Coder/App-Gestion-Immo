@@ -3,6 +3,7 @@ import {
   LayoutDashboard, Building, Users, MessageSquare, FileText, 
   CreditCard, Settings, LogOut, X 
 } from 'lucide-react';
+import { useAuth } from '../auth/AuthProvider';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
   const location = useLocation();
+  const { profile, signOut } = useAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path 
@@ -18,16 +20,37 @@ const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
       : 'text-gray-300 hover:bg-primary-700 hover:text-white';
   };
 
-  const sidebarLinks = [
+  // Liens pour admin
+  const adminLinks = [
     { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Tableau de bord' },
     { path: '/admin/utilisateurs', icon: <Users size={20} />, label: 'Utilisateurs' },
     { path: '/admin/biens', icon: <Building size={20} />, label: 'Biens immobiliers' },
+    { path: '/admin/clients', icon: <Users size={20} />, label: 'Clients' },
     { path: '/admin/demandes', icon: <MessageSquare size={20} />, label: 'Demandes' },
     { path: '/admin/contrats', icon: <FileText size={20} />, label: 'Contrats' },
     { path: '/admin/paiements', icon: <CreditCard size={20} />, label: 'Paiements' },
     { path: '/admin/parametres', icon: <Settings size={20} />, label: 'Paramètres' },
   ];
 
+  // Liens pour agent (sans utilisateurs et paramètres)
+  const agentLinks = [
+    { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Tableau de bord' },
+    { path: '/admin/biens', icon: <Building size={20} />, label: 'Biens immobiliers' },
+    { path: '/admin/clients', icon: <Users size={20} />, label: 'Clients' },
+    { path: '/admin/demandes', icon: <MessageSquare size={20} />, label: 'Demandes' },
+    { path: '/admin/contrats', icon: <FileText size={20} />, label: 'Contrats' },
+    { path: '/admin/paiements', icon: <CreditCard size={20} />, label: 'Paiements' },
+  ];
+
+  const sidebarLinks = profile?.role === 'admin' ? adminLinks : agentLinks;
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
   return (
     <>
       {/* Mobile sidebar backdrop */}
@@ -47,7 +70,9 @@ const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
         <div className="flex items-center justify-between px-4 py-5 border-b border-primary-700">
           <Link to="/admin" className="flex items-center space-x-2">
             <Building className="h-8 w-8 text-white" />
-            <span className="text-xl font-bold text-white">ImmoExpert</span>
+            <span className="text-xl font-bold text-white">
+              {profile?.role === 'admin' ? 'Admin' : 'Agent'}
+            </span>
           </Link>
           <button 
             onClick={toggleSidebar}
@@ -75,13 +100,13 @@ const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
           
           {/* Logout button */}
           <div className="px-2 mt-auto">
-            <Link 
-              to="/login"
+            <button 
+              onClick={handleLogout}
               className="flex items-center px-4 py-3 text-sm font-medium text-gray-300 rounded-md hover:bg-red-700 hover:text-white transition-colors duration-200"
             >
               <LogOut size={20} className="mr-3" />
               Déconnexion
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
