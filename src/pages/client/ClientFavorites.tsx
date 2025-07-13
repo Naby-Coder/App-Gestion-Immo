@@ -1,21 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Heart, Trash2, Eye, MessageSquare, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { favorites } from '../../data/clientData';
+import { useFavorites } from '../../hooks/useFavorites';
 import { properties } from '../../data/properties';
 import { formatPrice } from '../../utils/formatters';
 
 const ClientFavorites = () => {
-  const [favoritesList, setFavoritesList] = useState(favorites);
+  const { favorites, loading, removeFromFavorites } = useFavorites();
   
-  const favoriteProperties = favoritesList.map(fav => {
+  const favoriteProperties = favorites.map(fav => {
     const property = properties.find(p => p.id === fav.propertyId);
     return property ? { ...property, favoriteId: fav.id } : null;
   }).filter(Boolean);
 
-  const removeFavorite = (favoriteId: string) => {
+  const removeFavorite = async (propertyId: string) => {
     if (confirm('Êtes-vous sûr de vouloir retirer ce bien de vos favoris ?')) {
-      setFavoritesList(prev => prev.filter(fav => fav.id !== favoriteId));
+      await removeFromFavorites(propertyId);
     }
   };
 
@@ -26,6 +26,14 @@ const ClientFavorites = () => {
   const scheduleVisit = (property: any) => {
     alert(`Demande de visite programmée pour: ${property.title}`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -67,7 +75,7 @@ const ClientFavorites = () => {
                 </div>
                 <div className="absolute top-2 right-2">
                   <button
-                    onClick={() => removeFavorite(property.favoriteId)}
+                    onClick={() => removeFavorite(property.id)}
                     className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
                     title="Retirer des favoris"
                   >
@@ -110,7 +118,7 @@ const ClientFavorites = () => {
                       Voir le bien
                     </Link>
                     <button
-                      onClick={() => removeFavorite(property.favoriteId)}
+                      onClick={() => removeFavorite(property.id)}
                       className="px-3 py-2 border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors"
                       title="Supprimer"
                     >

@@ -1,16 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  LayoutDashboard, Heart, MessageSquare, FileText, 
-  Calendar, User, LogOut, X 
+  LayoutDashboard, Building, Users, MessageSquare, FileText, 
+  CreditCard, User, LogOut, X
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
-interface ClientSidebarProps {
+interface AgentSidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
 }
 
-const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
+const AgentSidebar = ({ isOpen, toggleSidebar }: AgentSidebarProps) => {
   const location = useLocation();
   const { signOut } = useAuth();
   
@@ -20,13 +20,14 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
       : 'text-gray-300 hover:bg-primary-700 hover:text-white';
   };
 
-  const sidebarLinks = [
-    { path: '/espace-client', icon: <LayoutDashboard size={20} />, label: 'Tableau de bord' },
-    { path: '/espace-client/favoris', icon: <Heart size={20} />, label: 'Mes biens favoris' },
-    { path: '/espace-client/demandes', icon: <FileText size={20} />, label: 'Mes demandes' },
-    { path: '/espace-client/messages', icon: <MessageSquare size={20} />, label: 'Messages' },
-    { path: '/espace-client/rendez-vous', icon: <Calendar size={20} />, label: 'Rendez-vous' },
-    { path: '/espace-client/profil', icon: <User size={20} />, label: 'Mon profil' },
+  const agentLinks = [
+    { path: '/agent', icon: <LayoutDashboard size={20} />, label: 'Tableau de bord' },
+    { path: '/agent/biens', icon: <Building size={20} />, label: 'Mes biens' },
+    { path: '/agent/clients', icon: <Users size={20} />, label: 'Mes clients' },
+    { path: '/agent/demandes', icon: <MessageSquare size={20} />, label: 'Mes demandes' },
+    { path: '/agent/contrats', icon: <FileText size={20} />, label: 'Mes contrats' },
+    { path: '/agent/paiements', icon: <CreditCard size={20} />, label: 'Mes paiements' },
+    { path: '/agent/profil', icon: <User size={20} />, label: 'Mon profil' },
   ];
 
   const handleLogout = async () => {
@@ -54,11 +55,9 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
         
         {/* Sidebar header */}
         <div className="flex items-center justify-between px-4 py-5 border-b border-primary-700">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-primary-800 font-bold text-sm">IE</span>
-            </div>
-            <span className="text-xl font-bold text-white">Espace Client</span>
+          <Link to="/agent" className="flex items-center space-x-2">
+            <Building className="h-8 w-8 text-white" />
+            <span className="text-xl font-bold text-white">Espace Agent</span>
           </Link>
           <button 
             onClick={toggleSidebar}
@@ -75,8 +74,8 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
               <User size={20} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-medium">Arame Diop</p>
-              <p className="text-primary-200 text-sm">Client</p>
+              <p className="text-white font-medium">Fadel Fall</p>
+              <p className="text-primary-200 text-sm">Agent Immobilier</p>
             </div>
           </div>
         </div>
@@ -85,7 +84,7 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
         <div className="py-4 flex flex-col h-[calc(100%-140px)] justify-between">
           {/* Navigation links */}
           <nav className="px-2 space-y-1">
-            {sidebarLinks.map((link) => (
+            {agentLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -113,4 +112,4 @@ const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
   );
 };
 
-export default ClientSidebar;
+export default AgentSidebar;

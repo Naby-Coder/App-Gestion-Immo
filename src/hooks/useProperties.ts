@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { properties as initialProperties } from '../data/properties';
 
 export interface Property {
   id: string;
@@ -12,21 +12,23 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   description: string;
-  street: string;
-  city: string;
-  zip_code: string;
-  country: string;
+  address: {
+    street: string;
+    city: string;
+    zipCode: string;
+    country: string;
+  };
   features: string[];
   images: string[];
   featured: boolean;
-  agent_id: string | null;
-  created_at: string;
-  updated_at: string;
+  agentId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function useProperties() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [properties, setProperties] = useState<Property[]>(initialProperties);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProperties = async (filters?: {
@@ -39,31 +41,34 @@ export function useProperties() {
   }) => {
     try {
       setLoading(true);
-      let query = supabase.from('properties').select('*');
+      
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      let filteredProperties = [...initialProperties];
 
       if (filters?.type) {
-        query = query.eq('type', filters.type);
+        filteredProperties = filteredProperties.filter(p => p.type === filters.type);
       }
       if (filters?.status) {
-        query = query.eq('status', filters.status);
+        filteredProperties = filteredProperties.filter(p => p.status === filters.status);
       }
       if (filters?.city) {
-        query = query.ilike('city', `%${filters.city}%`);
+        filteredProperties = filteredProperties.filter(p => 
+          p.address.city.toLowerCase().includes(filters.city!.toLowerCase())
+        );
       }
       if (filters?.minPrice) {
-        query = query.gte('price', filters.minPrice);
+        filteredProperties = filteredProperties.filter(p => p.price >= filters.minPrice!);
       }
       if (filters?.maxPrice) {
-        query = query.lte('price', filters.maxPrice);
+        filteredProperties = filteredProperties.filter(p => p.price <= filters.maxPrice!);
       }
       if (filters?.featured !== undefined) {
-        query = query.eq('featured', filters.featured);
+        filteredProperties = filteredProperties.filter(p => p.featured === filters.featured);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProperties(data || []);
+      setProperties(filteredProperties);
       setError(null);
     } catch (err) {
       setError('Erreur lors du chargement des biens');
@@ -75,32 +80,31 @@ export function useProperties() {
 
   const getProperty = async (id: string) => {
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      return data;
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const property = initialProperties.find(p => p.id === id);
+      return property || null;
     } catch (err) {
       console.error('Erreur lors de la récupération du bien:', err);
       return null;
     }
   };
 
-  const createProperty = async (propertyData: Omit<Property, 'id' | 'created_at' | 'updated_at'>) => {
+  const createProperty = async (propertyData: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .insert(propertyData)
-        .select()
-        .single();
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const newProperty: Property = {
+        ...propertyData,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-      if (error) throw error;
-
-      setProperties(prev => [data, ...prev]);
-      return { data, error: null };
+      setProperties(prev => [newProperty, ...prev]);
+      return { data: newProperty, error: null };
     } catch (err) {
       return { data: null, error: err };
     }
@@ -108,17 +112,17 @@ export function useProperties() {
 
   const updateProperty = async (id: string, updates: Partial<Property>) => {
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const updatedProperty = {
+        ...properties.find(p => p.id === id),
+        ...updates,
+        updatedAt: new Date().toISOString()
+      } as Property;
 
-      if (error) throw error;
-
-      setProperties(prev => prev.map(p => p.id === id ? data : p));
-      return { data, error: null };
+      setProperties(prev => prev.map(p => p.id === id ? updatedProperty : p));
+      return { data: updatedProperty, error: null };
     } catch (err) {
       return { data: null, error: err };
     }
@@ -126,13 +130,9 @@ export function useProperties() {
 
   const deleteProperty = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       setProperties(prev => prev.filter(p => p.id !== id));
       return { error: null };
     } catch (err) {

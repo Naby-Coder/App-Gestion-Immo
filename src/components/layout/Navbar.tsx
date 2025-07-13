@@ -20,6 +20,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await signOut();
+      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -27,7 +28,7 @@ const Navbar = () => {
 
   const handleDashboardClick = () => {
     if (profile?.role === 'admin' || profile?.role === 'agent') {
-      navigate('/admin');
+      navigate(profile?.role === 'admin' ? '/admin' : '/agent');
     } else {
       navigate('/espace-client');
     }

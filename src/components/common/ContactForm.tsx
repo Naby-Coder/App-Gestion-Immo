@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { mockStorage } from '../../lib/mockData';
 
 interface ContactFormProps {
   propertyId?: string;
@@ -27,7 +28,24 @@ const ContactForm = ({ propertyId, propertyTitle }: ContactFormProps) => {
       // Simuler un envoi de formulaire
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Form data submitted:', { ...data, propertyId });
+      // Créer une nouvelle demande de contact
+      const newRequest = {
+        id: Date.now().toString(),
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        message: data.message,
+        propertyId: propertyId || null,
+        status: 'Nouveau',
+        createdAt: new Date().toISOString(),
+        assignedTo: null
+      };
+
+      // Ajouter à la liste des demandes
+      mockStorage.add('contactRequests', newRequest);
+      
+      console.log('Form data submitted:', newRequest);
       setIsSuccess(true);
       reset();
       
@@ -118,11 +136,7 @@ const ContactForm = ({ propertyId, propertyTitle }: ContactFormProps) => {
                 type="tel"
                 className={`input ${errors.phone ? 'border-error-500 focus:ring-error-500 focus:border-error-500' : ''}`}
                 {...register('phone', { 
-                  required: 'Ce champ est requis',
-                  pattern: {
-                    value: /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/,
-                    message: 'Numéro de téléphone invalide'
-                  }
+                  required: 'Ce champ est requis'
                 })}
               />
               {errors.phone && (

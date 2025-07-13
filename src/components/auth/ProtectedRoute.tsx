@@ -35,15 +35,15 @@ export function ProtectedRoute({
   // Si un rôle spécifique est requis et que l'utilisateur n'a pas ce rôle
   if (requiredRole && profile?.role !== requiredRole) {
     // Cas spécial: les agents peuvent accéder aux routes admin mais avec des permissions limitées
-    if (requiredRole === 'admin' && profile?.role === 'agent') {
-      // Permettre l'accès mais avec des restrictions dans les composants
-      return <>{children}</>;
-    }
+    // if (requiredRole === 'admin' && profile?.role === 'agent') {
+    //   // Permettre l'accès mais avec des restrictions dans les composants
+    //   return <>{children}</>;
+    // }
     
     // Rediriger vers le bon dashboard selon le rôle de l'utilisateur
     const dashboardRoutes = {
       admin: '/admin',
-      agent: '/admin',
+      agent: '/agent',
       client: '/espace-client'
     };
     

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Building, Globe, Bell, Shield, Database, Palette } from 'lucide-react';
+import { Save, Building, Globe, Bell, Shield, Database, Palette, Download, Trash2 } from 'lucide-react';
 
 const AdminSettings = () => {
   const [activeTab, setActiveTab] = useState('company');

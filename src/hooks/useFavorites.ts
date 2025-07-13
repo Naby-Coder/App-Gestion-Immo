@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../components/auth/AuthProvider';
+import { mockStorage } from '../lib/mockData';
 
 export interface Favorite {
   id: string;
-  user_id: string;
-  property_id: string;
-  created_at: string;
+  userId: string;
+  propertyId: string;
+  createdAt: string;
 }
 
 export function useFavorites() {
@@ -22,14 +22,12 @@ export function useFavorites() {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setFavorites(data || []);
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const allFavorites = mockStorage.get('favorites') || [];
+      const userFavorites = allFavorites.filter((f: Favorite) => f.userId === user.id);
+      setFavorites(userFavorites);
     } catch (error) {
       console.error('Erreur lors du chargement des favoris:', error);
     } finally {
@@ -41,19 +39,16 @@ export function useFavorites() {
     if (!user) return { error: new Error('Utilisateur non connecté') };
 
     try {
-      const { data, error } = await supabase
-        .from('favorites')
-        .insert({
-          user_id: user.id,
-          property_id: propertyId,
-        })
-        .select()
-        .single();
+      const newFavorite: Favorite = {
+        id: Date.now().toString(),
+        userId: user.id,
+        propertyId,
+        createdAt: new Date().toISOString()
+      };
 
-      if (error) throw error;
-
-      setFavorites(prev => [data, ...prev]);
-      return { data, error: null };
+      mockStorage.add('favorites', newFavorite);
+      setFavorites(prev => [newFavorite, ...prev]);
+      return { data: newFavorite, error: null };
     } catch (err) {
       return { data: null, error: err };
     }
@@ -63,15 +58,16 @@ export function useFavorites() {
     if (!user) return { error: new Error('Utilisateur non connecté') };
 
     try {
-      const { error } = await supabase
-        .from('favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('property_id', propertyId);
+      const allFavorites = mockStorage.get('favorites') || [];
+      const favoriteToRemove = allFavorites.find((f: Favorite) => 
+        f.userId === user.id && f.propertyId === propertyId
+      );
 
-      if (error) throw error;
+      if (favoriteToRemove) {
+        mockStorage.remove('favorites', favoriteToRemove.id);
+        setFavorites(prev => prev.filter(f => f.propertyId !== propertyId));
+      }
 
-      setFavorites(prev => prev.filter(f => f.property_id !== propertyId));
       return { error: null };
     } catch (err) {
       return { error: err };
@@ -79,7 +75,7 @@ export function useFavorites() {
   };
 
   const isFavorite = (propertyId: string) => {
-    return favorites.some(f => f.property_id === propertyId);
+    return favorites.some(f => f.propertyId === propertyId);
   };
 
   const toggleFavorite = async (propertyId: string) => {

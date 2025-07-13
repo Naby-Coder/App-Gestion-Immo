@@ -1,14 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, User, Phone, CheckCircle, XCircle, Edit, X } from 'lucide-react';
-import { appointments } from '../../data/clientData';
+import { mockStorage } from '../../lib/mockData';
+import { useAuth } from '../../components/auth/AuthProvider';
 import { properties } from '../../data/properties';
 import { agents } from '../../data/agents';
 import { formatDate } from '../../utils/formatters';
 
 const ClientAppointments = () => {
-  const [appointmentsList, setAppointmentsList] = useState(appointments);
+  const { user } = useAuth();
+  const [appointmentsList, setAppointmentsList] = useState<any[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadAppointments();
+    }
+  }, [user]);
+
+  const loadAppointments = async () => {
+    try {
+      // Simuler un délai de réseau
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      const allAppointments = mockStorage.get('appointments') || [];
+      const userAppointments = allAppointments.filter((apt: any) => apt.userId === user?.id);
+      setAppointmentsList(userAppointments);
+    } catch (error) {
+      console.error('Erreur lors du chargement des rendez-vous:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -54,9 +78,15 @@ const ClientAppointments = () => {
   };
 
   const confirmAppointment = (appointmentId: string) => {
+    const allAppointments = mockStorage.get('appointments') || [];
+    const updatedAppointments = allAppointments.map((apt: any) =>
+      apt.id === appointmentId ? { ...apt, status: 'Confirmé' } : apt
+    );
+    mockStorage.set('appointments', updatedAppointments);
+    
     setAppointmentsList(prev =>
       prev.map(apt =>
-        apt.id === appointmentId ? { ...apt, status: 'Confirmé' as const } : apt
+        apt.id === appointmentId ? { ...apt, status: 'Confirmé' } : apt
       )
     );
     alert('Rendez-vous confirmé avec succès !');
@@ -64,9 +94,15 @@ const ClientAppointments = () => {
 
   const cancelAppointment = (appointmentId: string) => {
     if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+      const allAppointments = mockStorage.get('appointments') || [];
+      const updatedAppointments = allAppointments.map((apt: any) =>
+        apt.id === appointmentId ? { ...apt, status: 'Annulé' } : apt
+      );
+      mockStorage.set('appointments', updatedAppointments);
+      
       setAppointmentsList(prev =>
         prev.map(apt =>
-          apt.id === appointmentId ? { ...apt, status: 'Annulé' as const } : apt
+          apt.id === appointmentId ? { ...apt, status: 'Annulé' } : apt
         )
       );
       alert('Rendez-vous annulé');
@@ -76,6 +112,14 @@ const ClientAppointments = () => {
   const rescheduleAppointment = (appointment: any) => {
     alert(`Demande de report envoyée pour le rendez-vous du ${formatDate(appointment.date + 'T00:00:00Z')}`);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>

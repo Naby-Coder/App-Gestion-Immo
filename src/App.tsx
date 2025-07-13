@@ -27,6 +27,9 @@ import AdminRequests from './pages/admin/AdminRequests';
 import AdminContracts from './pages/admin/AdminContracts';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminProfile from './pages/admin/AdminProfile';
+import AgentLayout from './components/layout/AgentLayout';
+import AgentDashboard from './pages/agent/AgentDashboard';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
@@ -62,17 +65,34 @@ function App() {
 
         {/* Routes admin/agent protégées */}
         <Route path="admin" element={
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute requiredRole="admin" redirectTo="/agent">
             <AdminLayout />
           </ProtectedRoute>
         }>
           <Route index element={<AdminDashboard />} />
+          <Route path="utilisateurs" element={<AdminUsers />} />
           <Route path="biens" element={<AdminProperties />} />
           <Route path="clients" element={<AdminClients />} />
           <Route path="demandes" element={<AdminRequests />} />
           <Route path="contrats" element={<AdminContracts />} />
           <Route path="paiements" element={<AdminPayments />} />
           <Route path="parametres" element={<AdminSettings />} />
+          <Route path="profil" element={<AdminProfile />} />
+        </Route>
+        
+        {/* Routes agent protégées */}
+        <Route path="agent" element={
+          <ProtectedRoute requiredRole="agent" redirectTo="/admin">
+            <AgentLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<AgentDashboard />} />
+          <Route path="biens" element={<AdminProperties />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="demandes" element={<AdminRequests />} />
+          <Route path="contrats" element={<AdminContracts />} />
+          <Route path="paiements" element={<AdminPayments />} />
+          <Route path="profil" element={<AdminProfile />} />
         </Route>
 
         {/* Route 404 */}

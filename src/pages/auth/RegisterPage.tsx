@@ -4,7 +4,7 @@ import { Mail, Lock, User, Building } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 
 const RegisterPage = () => {
-  const { signUp, loading: authLoading, user, profile } = useAuth();
+  const { signUp, loading: authLoading, user } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -21,17 +21,17 @@ const RegisterPage = () => {
 
   // Redirection automatique si l'utilisateur est connecté
   useEffect(() => {
-    if (!authLoading && user && profile) {
+    if (!authLoading && user) {
       const dashboardRoutes = {
         admin: '/admin',
         agent: '/admin',
         client: '/espace-client'
       };
       
-      const targetRoute = dashboardRoutes[profile.role] || '/espace-client';
+      const targetRoute = dashboardRoutes[user.role] || '/espace-client';
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, authLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -70,32 +70,14 @@ const RegisterPage = () => {
         role: formData.role
       });
 
-      if (result.user && !result.session) {
-        // User needs to confirm email
-        setSuccess('Un email de confirmation a été envoyé à votre adresse. Veuillez vérifier votre boîte de réception et cliquer sur le lien de confirmation avant de vous connecter.');
-      } else if (result.session || result.user) {
-        // User is immediately signed in or account created
+      if (result.user) {
         setSuccess('Compte créé avec succès ! Redirection vers votre espace...');
         // La redirection sera gérée par useEffect
       }
       
     } catch (err: any) {
       console.error('Erreur d\'inscription:', err);
-      
-      let errorMessage = 'Une erreur est survenue lors de l\'inscription';
-      
-      if (err.message?.includes('user_already_exists') || 
-          err.message?.includes('User already registered')) {
-        errorMessage = 'Un compte avec cette adresse email existe déjà. Veuillez vous connecter ou utiliser une autre adresse email.';
-      } else if (err.message?.includes('Invalid email')) {
-        errorMessage = 'Adresse email invalide. Veuillez vérifier le format de votre email.';
-      } else if (err.message?.includes('Password should be at least')) {
-        errorMessage = 'Le mot de passe doit contenir au moins 6 caractères.';
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
+      setError(err.message || 'Une erreur est survenue lors de l\'inscription');
     } finally {
       setIsSubmitting(false);
     }
@@ -328,15 +310,15 @@ const RegisterPage = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">🔗 Supabase</span>
+                <span className="px-2 bg-white text-gray-500">💾 Données fictives</span>
               </div>
             </div>
 
             <div className="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded-md">
-              <p className="font-medium text-gray-700 mb-1">✨ Application connectée à Supabase</p>
-              <p>Créez un compte sécurisé avec authentification complète et base de données PostgreSQL.</p>
-              <p className="mt-2">• Données synchronisées en temps réel</p>
-              <p>• Sécurité renforcée avec RLS</p>
+              <p className="font-medium text-gray-700 mb-1">💾 Application avec données fictives</p>
+              <p>Créez un compte sécurisé avec stockage local des données.</p>
+              <p className="mt-2">• Données synchronisées localement</p>
+              <p>• Fonctionnalités complètes sans backend</p>
             </div>
           </div>
         </div>
