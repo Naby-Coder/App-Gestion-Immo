@@ -24,6 +24,7 @@ const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
   const adminLinks = [
     { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Tableau de bord' },
     { path: '/admin/utilisateurs', icon: <Users size={20} />, label: 'Utilisateurs' },
+    { path: '/admin/utilisateurs', icon: <Users size={20} />, label: 'Utilisateurs' },
     { path: '/admin/biens', icon: <Building size={20} />, label: 'Biens immobiliers' },
     { path: '/admin/clients', icon: <Users size={20} />, label: 'Clients' },
     { path: '/admin/demandes', icon: <MessageSquare size={20} />, label: 'Demandes' },
@@ -40,6 +41,7 @@ const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
     { path: '/admin/demandes', icon: <MessageSquare size={20} />, label: 'Demandes' },
     { path: '/admin/contrats', icon: <FileText size={20} />, label: 'Contrats' },
     { path: '/admin/paiements', icon: <CreditCard size={20} />, label: 'Paiements' },
+    { path: '/admin/profil', icon: <User size={20} />, label: 'Mon profil' },
   ];
 
   const sidebarLinks = profile?.role === 'admin' ? adminLinks : agentLinks;

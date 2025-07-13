@@ -2,11 +2,14 @@ import {
   Building, Users, MessageSquare, CreditCard, TrendingUp, 
   Percent, Activity, Calendar, Shield, UserCheck
 } from 'lucide-react';
+import { useAuth } from '../../components/auth/AuthProvider';
 import { properties } from '../../data/properties';
 import { contactRequests } from '../../data/requests';
 import { formatPrice } from '../../utils/formatters';
 
 const AdminDashboard = () => {
+  const { profile } = useAuth();
+  
   // Calculs des statistiques
   const totalProperties = properties.length;
   const propertiesForSale = properties.filter(p => p.status === 'Vente').length;
@@ -17,26 +20,81 @@ const AdminDashboard = () => {
   const totalClients = 146;
   const newRequests = contactRequests.filter(r => r.status === 'Nouveau').length;
   
-  // Données de ventes mensuelles réalistes pour le Sénégal (en XOF)
-  const monthlyData = [
+  // Données adaptées selon le rôle
+  const monthlyData = profile?.role === 'admin' ? [
     { month: 'Jan', sales: 45000000, transactions: 8 },
     { month: 'Fév', sales: 62000000, transactions: 12 },
     { month: 'Mar', sales: 38000000, transactions: 6 },
     { month: 'Avr', sales: 78000000, transactions: 15 },
     { month: 'Mai', sales: 55000000, transactions: 10 },
     { month: 'Juin', sales: 89000000, transactions: 18 }
+  ] : [
+    { month: 'Jan', sales: 15000000, transactions: 3 },
+    { month: 'Fév', sales: 22000000, transactions: 4 },
+    { month: 'Mar', sales: 18000000, transactions: 2 },
+    { month: 'Avr', sales: 28000000, transactions: 5 },
+    { month: 'Mai', sales: 25000000, transactions: 4 },
+    { month: 'Juin', sales: 35000000, transactions: 6 }
   ];
   
   const maxValue = Math.max(...monthlyData.map(d => d.sales));
   const currentMonthSales = monthlyData[monthlyData.length - 1].sales;
   
+  // Statistiques spécifiques à l'agent
+  const agentStats = {
+    myProperties: 12,
+    myClients: 28,
+    myDeals: 6,
+    myCommission: currentMonthSales * 0.03 // 3% de commission
+  };
+  
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">Tableau de bord</h1>
+      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+        {profile?.role === 'admin' ? 'Tableau de bord Administrateur' : 'Tableau de bord Agent - Fadel Fall'}
+      </h1>
       
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        {profile?.role === 'admin' ? (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Biens Total</p>
+                <p className="text-2xl font-bold">{totalProperties}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
+                <Building className="h-6 w-6 text-primary-600" />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <span className="text-xs font-medium text-gray-500">Vente: {propertiesForSale}</span>
+                <span className="mx-2 text-gray-300">|</span>
+                <span className="text-xs font-medium text-gray-500">Location: {propertiesForRent}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Mes Biens</p>
+                <p className="text-2xl font-bold">{agentStats.myProperties}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
+                <Building className="h-6 w-6 text-primary-600" />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <span className="text-xs font-medium text-gray-500">Actifs: 8</span>
+                <span className="mx-2 text-gray-300">|</span>
+                <span className="text-xs font-medium text-gray-500">Vendus: 4</span>
+              </div>
+            </div>
+          </div>
+        )}
           <div className="flex justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Biens Total</p>
@@ -55,42 +113,69 @@ const AdminDashboard = () => {
           </div>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Utilisateurs</p>
-              <p className="text-2xl font-bold">{totalUsers}</p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-secondary-100 flex items-center justify-center">
-              <Users className="h-6 w-6 text-secondary-600" />
-            </div>
-          </div>
-          <div className="mt-4 flex justify-between items-center">
-            <div className="flex items-center">
-              <div className="flex space-x-4 text-xs">
-                <span className="flex items-center">
-                  <Shield size={12} className="mr-1 text-red-500" />
-                  {totalAdmins} admins
-                </span>
-                <span className="flex items-center">
-                  <UserCheck size={12} className="mr-1 text-blue-500" />
-                  {totalAgents} agents
-                </span>
-                <span className="flex items-center">
-                  <Users size={12} className="mr-1 text-green-500" />
-                  {totalClients} clients
-                </span>
+        {profile?.role === 'admin' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Utilisateurs</p>
+                <p className="text-2xl font-bold">{totalUsers}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-secondary-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-secondary-600" />
               </div>
             </div>
-            <span className="text-xs font-medium text-gray-500">+12 ce mois</span>
+            <div className="mt-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <div className="flex space-x-4 text-xs">
+                  <span className="flex items-center">
+                    <Shield size={12} className="mr-1 text-red-500" />
+                    {totalAdmins} admins
+                  </span>
+                  <span className="flex items-center">
+                    <UserCheck size={12} className="mr-1 text-blue-500" />
+                    {totalAgents} agents
+                  </span>
+                  <span className="flex items-center">
+                    <Users size={12} className="mr-1 text-green-500" />
+                    {totalClients} clients
+                  </span>
+                </div>
+              </div>
+              <span className="text-xs font-medium text-gray-500">+12 ce mois</span>
+            </div>
           </div>
-        </div>
+        )}
+        
+        {profile?.role === 'agent' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Mes Clients</p>
+                <p className="text-2xl font-bold">{agentStats.myClients}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-secondary-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-secondary-600" />
+              </div>
+            </div>
+            <div className="mt-4 flex justify-between items-center">
+              <div className="flex items-center">
+                <span className="text-xs font-medium text-gray-500">Actifs: 22</span>
+                <span className="mx-2 text-gray-300">|</span>
+                <span className="text-xs font-medium text-gray-500">Prospects: 6</span>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Demandes</p>
-              <p className="text-2xl font-bold">{contactRequests.length}</p>
+              <p className="text-sm font-medium text-gray-500">
+                {profile?.role === 'admin' ? 'Demandes' : 'Mes Demandes'}
+              </p>
+              <p className="text-2xl font-bold">
+                {profile?.role === 'admin' ? contactRequests.length : Math.floor(contactRequests.length / 3)}
+              </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-accent-100 flex items-center justify-center">
               <MessageSquare className="h-6 w-6 text-accent-600" />
@@ -98,7 +183,9 @@ const AdminDashboard = () => {
           </div>
           <div className="mt-4 flex justify-between items-center">
             <div className="flex items-center">
-              <span className="text-xs font-medium text-warning-500">{newRequests} en attente</span>
+              <span className="text-xs font-medium text-warning-500">
+                {profile?.role === 'admin' ? newRequests : Math.floor(newRequests / 2)} en attente
+              </span>
             </div>
             <span className="text-xs font-medium text-gray-500">Temps moyen: 2j</span>
           </div>
@@ -107,8 +194,12 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">CA Mensuel</p>
-              <p className="text-2xl font-bold">{formatPrice(currentMonthSales)}</p>
+              <p className="text-sm font-medium text-gray-500">
+                {profile?.role === 'admin' ? 'CA Mensuel' : 'Ma Commission'}
+              </p>
+              <p className="text-2xl font-bold">
+                {formatPrice(profile?.role === 'admin' ? currentMonthSales : agentStats.myCommission)}
+              </p>
             </div>
             <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
               <CreditCard className="h-6 w-6 text-gray-600" />
@@ -117,7 +208,9 @@ const AdminDashboard = () => {
           <div className="mt-4 flex justify-between items-center">
             <div className="flex items-center">
               <TrendingUp className="h-4 w-4 text-success-500 mr-1" />
-              <span className="text-xs font-medium text-success-500">+12.5%</span>
+              <span className="text-xs font-medium text-success-500">
+                {profile?.role === 'admin' ? '+12.5%' : '+18.2%'}
+              </span>
             </div>
             <span className="text-xs font-medium text-gray-500">vs mois dernier</span>
           </div>
@@ -129,7 +222,9 @@ const AdminDashboard = () => {
         {/* Sales Chart */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-gray-800">Ventes Mensuelles</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              {profile?.role === 'admin' ? 'Ventes Mensuelles' : 'Mes Ventes Mensuelles'}
+            </h2>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-medium text-gray-500">2025</span>
             </div>
@@ -160,7 +255,9 @@ const AdminDashboard = () => {
           
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              Total: <span className="font-semibold">{formatPrice(monthlyData.reduce((sum, d) => sum + d.sales, 0))}</span>
+              {profile?.role === 'admin' ? 'Total' : 'Mon total'}: <span className="font-semibold">
+                {formatPrice(monthlyData.reduce((sum, d) => sum + d.sales, 0))}
+              </span>
             </p>
           </div>
         </div>
@@ -168,7 +265,9 @@ const AdminDashboard = () => {
         {/* Performance Metrics */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold text-gray-800">Performance</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              {profile?.role === 'admin' ? 'Performance Globale' : 'Ma Performance'}
+            </h2>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-medium text-gray-500">Juin 2025</span>
             </div>
@@ -220,7 +319,9 @@ const AdminDashboard = () => {
       {/* Recent Activities */}
       <div className="mt-8">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-6">Activités récentes</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-6">
+            {profile?.role === 'admin' ? 'Activités récentes' : 'Mes activités récentes'}
+          </h2>
           
           <div className="overflow-x-auto">
             <table className="w-full min-w-full">

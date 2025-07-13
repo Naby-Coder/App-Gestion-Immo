@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Bell, Menu, Search, User } from 'lucide-react';
 
 interface ClientHeaderProps {
@@ -5,6 +6,16 @@ interface ClientHeaderProps {
 }
 
 const ClientHeader = ({ toggleSidebar }: ClientHeaderProps) => {
+  const [showNotifications, setShowNotifications] = useState(false);
+  
+  const notifications = [
+    { id: 1, message: 'Nouvelle réponse à votre demande', time: '10 min', unread: true },
+    { id: 2, message: 'Rendez-vous confirmé pour demain', time: '1h', unread: true },
+    { id: 3, message: 'Nouveau bien correspondant à vos critères', time: '2h', unread: false },
+  ];
+  
+  const unreadCount = notifications.filter(n => n.unread).length;
+
   return (
     <header className="bg-white shadow-sm z-10">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
@@ -37,10 +48,48 @@ const ClientHeader = ({ toggleSidebar }: ClientHeaderProps) => {
           {/* Right section */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <button className="p-1 text-gray-500 rounded-md hover:text-gray-900 hover:bg-gray-100 focus:outline-none relative">
-              <Bell size={20} />
-              <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full"></span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="p-1 text-gray-500 rounded-md hover:text-gray-900 hover:bg-gray-100 focus:outline-none relative"
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                  <div className="p-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${notification.unread ? 'bg-blue-50' : ''}`}>
+                        <div className="flex justify-between items-start">
+                          <p className={`text-sm ${notification.unread ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
+                            {notification.message}
+                          </p>
+                          <span className="text-xs text-gray-500 ml-2">{notification.time}</span>
+                        </div>
+                        {notification.unread && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 border-t border-gray-200">
+                    <button className="text-sm text-primary-600 hover:text-primary-800">
+                      Voir toutes les notifications
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             
             {/* Profile dropdown */}
             <div className="relative">

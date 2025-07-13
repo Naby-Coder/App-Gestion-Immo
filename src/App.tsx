@@ -67,12 +67,14 @@ function App() {
           </ProtectedRoute>
         }>
           <Route index element={<AdminDashboard />} />
+          <Route path="utilisateurs" element={<AdminUsers />} />
           <Route path="biens" element={<AdminProperties />} />
           <Route path="clients" element={<AdminClients />} />
           <Route path="demandes" element={<AdminRequests />} />
           <Route path="contrats" element={<AdminContracts />} />
           <Route path="paiements" element={<AdminPayments />} />
           <Route path="parametres" element={<AdminSettings />} />
+          <Route path="profil" element={<AdminProfile />} />
         </Route>
 
         {/* Route 404 */}

@@ -107,6 +107,9 @@ class MockAuthService {
     
     // Notifier les listeners
     this.listeners.forEach(listener => listener(null));
+    
+    // Rediriger vers la page de connexion
+    window.location.href = '/login';
   }
 
   onAuthStateChange(callback: (user: AuthUser | null) => void) {
