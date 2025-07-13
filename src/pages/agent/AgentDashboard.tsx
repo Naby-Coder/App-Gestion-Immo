@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
 import { formatPrice } from '../../utils/formatters';
+import { contactRequests } from '../../data/requests';
 
 const AgentDashboard = () => {
   const { user, profile } = useAuth();
