@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Building, Users, MessageSquare, FileText, 
-  CreditCard, Settings, LogOut, X 
+  CreditCard, Settings, LogOut, X, User
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
