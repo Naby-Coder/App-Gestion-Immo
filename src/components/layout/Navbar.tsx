@@ -28,7 +28,7 @@ const Navbar = () => {
 
   const handleDashboardClick = () => {
     if (profile?.role === 'admin' || profile?.role === 'agent') {
-      navigate('/admin');
+      navigate(profile?.role === 'admin' ? '/admin' : '/agent');
     } else {
       navigate('/espace-client');
     }

@@ -21,7 +21,7 @@ const LoginPage = () => {
       
       const dashboardRoutes = {
         admin: '/admin',
-        agent: '/admin', 
+        agent: '/agent', 
         client: '/espace-client'
       };
       
