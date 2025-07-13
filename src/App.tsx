@@ -28,6 +28,8 @@ import AdminContracts from './pages/admin/AdminContracts';
 import AdminPayments from './pages/admin/AdminPayments';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminProfile from './pages/admin/AdminProfile';
+import AgentLayout from './components/layout/AgentLayout';
+import AgentDashboard from './pages/agent/AgentDashboard';
 import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
