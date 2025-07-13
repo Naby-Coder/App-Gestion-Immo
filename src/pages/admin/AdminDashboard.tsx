@@ -8,7 +8,7 @@ import { contactRequests } from '../../data/requests';
 import { formatPrice } from '../../utils/formatters';
 
 const AdminDashboard = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   
   // Calculs des statistiques
   const totalProperties = properties.length;
@@ -33,10 +33,18 @@ const AdminDashboard = () => {
   const maxValue = Math.max(...monthlyData.map(d => d.sales));
   const currentMonthSales = monthlyData[monthlyData.length - 1].sales;
   
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+  
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Tableau de bord Administrateur
+        Bonjour {profile?.firstName || 'Administrateur'} !
       </h1>
       
       {/* Stats Cards */}
@@ -134,7 +142,7 @@ const AdminDashboard = () => {
       </div>
       
       {/* Charts and Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Sales Chart */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
@@ -150,7 +158,7 @@ const AdminDashboard = () => {
                 <div key={index} className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-primary-100 rounded-t-sm relative group" style={{ height: `${(data.sales / maxValue) * 100}%` }}>
                     <div 
-                      className="bg-primary-500 w-full h-full rounded-t-sm transition-all duration-500 hover:bg-primary-600"
+                      className="bg-primary-500 w-full h-full rounded-t-sm transition-all duration-300 hover:bg-primary-600"
                       style={{ opacity: index === monthlyData.length - 1 ? 1 : 0.8 }}
                     ></div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -228,101 +236,99 @@ const AdminDashboard = () => {
       </div>
       
       {/* Recent Activities */}
-      <div className="mt-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-6">Activités récentes</h2>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-full">
-              <thead>
-                <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <th className="px-6 py-3 border-b border-gray-200">Activité</th>
-                  <th className="px-6 py-3 border-b border-gray-200">Bien/Client</th>
-                  <th className="px-6 py-3 border-b border-gray-200">Agent</th>
-                  <th className="px-6 py-3 border-b border-gray-200">Date</th>
-                  <th className="px-6 py-3 border-b border-gray-200">Statut</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-800">Nouvelle demande</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Villa moderne aux Almadies</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Mouhamed Ndione</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Aujourd'hui, 10:30</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-warning-100 text-warning-700">
-                      En attente
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-800">Visite planifiée</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Appartement de standing à Plateau</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Fadel Fall</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Aujourd'hui, 14:00</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-700">
-                      Confirmé
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-800">Vente finalisée</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Villa de luxe à Saly</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Aïssatou Sall</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Hier, 16:45</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-100 text-success-700">
-                      Finalisé
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-medium text-gray-800">Nouveau bien ajouté</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Local commercial à Ngor</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">Fadel Fall</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">20 juin, 11:15</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
-                      Publié
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-6">Activités récentes</h2>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-full">
+            <thead>
+              <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 border-b border-gray-200">Activité</th>
+                <th className="px-6 py-3 border-b border-gray-200">Bien/Client</th>
+                <th className="px-6 py-3 border-b border-gray-200">Agent</th>
+                <th className="px-6 py-3 border-b border-gray-200">Date</th>
+                <th className="px-6 py-3 border-b border-gray-200">Statut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm font-medium text-gray-800">Nouvelle demande</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Villa moderne aux Almadies</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Mouhamed Ndione</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Aujourd'hui, 10:30</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-warning-100 text-warning-700">
+                    En attente
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm font-medium text-gray-800">Visite planifiée</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Appartement de standing à Plateau</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Fadel Fall</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Aujourd'hui, 14:00</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-primary-100 text-primary-700">
+                    Confirmé
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm font-medium text-gray-800">Vente finalisée</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Villa de luxe à Saly</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Aïssatou Sall</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Hier, 16:45</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-success-100 text-success-700">
+                    Finalisé
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm font-medium text-gray-800">Nouveau bien ajouté</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Local commercial à Ngor</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">Fadel Fall</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="text-sm text-gray-600">20 juin, 11:15</span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">
+                    Publié
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

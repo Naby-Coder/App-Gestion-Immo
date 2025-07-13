@@ -3,12 +3,10 @@ import {
   Calendar, Activity, Target, Award, Clock
 } from 'lucide-react';
 import { useAuth } from '../../components/auth/AuthProvider';
-import { properties } from '../../data/properties';
-import { contactRequests } from '../../data/requests';
 import { formatPrice } from '../../utils/formatters';
 
 const AgentDashboard = () => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   
   // Statistiques spécifiques à l'agent
   const agentStats = {
@@ -34,11 +32,19 @@ const AgentDashboard = () => {
   
   const maxValue = Math.max(...monthlyData.map(d => d.sales));
   
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+  
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Bonjour {profile?.firstName || 'Fadel'} !
+          Bonjour {profile?.firstName || user?.firstName || 'Fadel'} !
         </h1>
         <p className="text-gray-600">Voici un aperçu de votre activité immobilière</p>
       </div>
@@ -142,7 +148,7 @@ const AgentDashboard = () => {
                 <div key={index} className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-primary-100 rounded-t-sm relative group" style={{ height: `${(data.sales / maxValue) * 100}%` }}>
                     <div 
-                      className="bg-primary-500 w-full h-full rounded-t-sm transition-all duration-500 hover:bg-primary-600"
+                      className="bg-primary-500 w-full h-full rounded-t-sm transition-all duration-300 hover:bg-primary-600"
                       style={{ opacity: index === monthlyData.length - 1 ? 1 : 0.8 }}
                     ></div>
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -220,7 +226,7 @@ const AgentDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-8">
         <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
@@ -262,7 +268,7 @@ const AgentDashboard = () => {
       </div>
       
       {/* Recent Activities */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
         <h2 className="text-lg font-semibold text-gray-800 mb-6">Mes activités récentes</h2>
         
         <div className="overflow-x-auto">
@@ -280,7 +286,7 @@ const AgentDashboard = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-800">Visite planifiée</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <span className="text-sm text-gray-600">Appartement de standing à Plateau</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -296,7 +302,7 @@ const AgentDashboard = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-800">Nouveau client</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <span className="text-sm text-gray-600">Mamadou Gueye</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -312,7 +318,7 @@ const AgentDashboard = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-800">Bien ajouté</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <span className="text-sm text-gray-600">Local commercial à Ngor</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -328,7 +334,7 @@ const AgentDashboard = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="text-sm font-medium text-gray-800">Demande reçue</span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4">
                   <span className="text-sm text-gray-600">Villa moderne aux Almadies</span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
