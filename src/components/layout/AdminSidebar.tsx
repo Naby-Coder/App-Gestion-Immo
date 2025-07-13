@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Building, Users, MessageSquare, FileText, 
   CreditCard, Settings, LogOut, X, User
 } from 'lucide-react';
-import { useAuth } from '../auth/AuthProvider';
+import { useSupabaseAuth } from '../auth/SupabaseAuthProvider';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ isOpen, toggleSidebar }: AdminSidebarProps) => {
   const location = useLocation();
-  const { profile, signOut } = useAuth();
+  const { profile, signOut } = useSupabaseAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path 

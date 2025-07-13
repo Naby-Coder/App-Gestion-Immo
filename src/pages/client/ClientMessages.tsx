@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare, Mail, MailOpen, Reply, Trash2, Send, X } from 'lucide-react';
 import { mockStorage } from '../../lib/mockData';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 import { formatDate } from '../../utils/formatters';
 
 const ClientMessages = () => {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const [messagesList, setMessagesList] = useState<any[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);

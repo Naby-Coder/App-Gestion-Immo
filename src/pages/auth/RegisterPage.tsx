@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Building } from 'lucide-react';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 
 const RegisterPage = () => {
-  const { signUp, loading: authLoading, user } = useAuth();
+  const { signUp, loading: authLoading, user } = useSupabaseAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, User, Phone, CheckCircle, XCircle, Edit, X } from 'lucide-react';
 import { mockStorage } from '../../lib/mockData';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 import { properties } from '../../data/properties';
 import { agents } from '../../data/agents';
 import { formatDate } from '../../utils/formatters';
 
 const ClientAppointments = () => {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const [appointmentsList, setAppointmentsList] = useState<any[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);

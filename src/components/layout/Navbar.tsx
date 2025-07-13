@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Home, Building, Users, Phone, BookOpen, UserCircle, LogOut, Settings } from 'lucide-react';
-import { useAuth } from '../auth/AuthProvider';
+import { useSupabaseAuth } from '../auth/SupabaseAuthProvider';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut } = useSupabaseAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

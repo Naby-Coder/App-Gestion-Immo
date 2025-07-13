@@ -1,7 +1,34 @@
+export interface User {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: 'admin' | 'agent' | 'client';
+  createdAt: string;
+}
+
+export interface Profile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  avatar_url?: string;
+  role: 'admin' | 'agent' | 'client';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Favorite {
+  id: string;
+  userId: string;
+  propertyId: string;
+  createdAt: string;
+}
+
 export interface Property {
   id: string;
   title: string;
-  type: 'Appartement' | 'Maison' | 'Terrain' | 'Commerce' | 'Bureau' | 'Autre';
+  type: string;
   status: 'Vente' | 'Location';
   price: number;
   surface: number;
@@ -17,10 +44,10 @@ export interface Property {
   };
   features: string[];
   images: string[];
+  featured: boolean;
+  agentId?: string;
   createdAt: string;
   updatedAt: string;
-  featured?: boolean;
-  agentId: string;
 }
 
 export interface Agent {
@@ -29,26 +56,13 @@ export interface Agent {
   lastName: string;
   email: string;
   phone: string;
-  bio: string;
   avatar: string;
-  position: string;
-}
-
-export interface Client {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  createdAt: string;
-  preferences?: {
-    propertyTypes: string[];
-    budget: {
-      min: number;
-      max: number;
-    };
-    locations: string[];
-  };
+  bio: string;
+  specialties: string[];
+  experience: number;
+  properties: number;
+  sales: number;
+  rating: number;
 }
 
 export interface ContactRequest {
@@ -60,48 +74,19 @@ export interface ContactRequest {
   message: string;
   propertyId?: string;
   status: 'Nouveau' | 'En cours' | 'Traité';
-  createdAt: string;
   assignedTo?: string;
-}
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'admin' | 'agent' | 'client';
-  avatar?: string;
-  password: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface RegisterFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  role: 'client' | 'agent';
-}
-
-export interface Article {
+export interface Message {
   id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
+  senderId: string;
+  receiverId: string;
+  subject: string;
   content: string;
-  image: string;
-  author: string;
-  publishedAt: string;
-  category: string;
-  tags: string[];
-}
-
-export interface Favorite {
-  id: string;
-  userId: string;
-  propertyId: string;
+  read: boolean;
+  propertyId?: string;
   createdAt: string;
 }
 
@@ -115,15 +100,5 @@ export interface Appointment {
   status: 'Programmé' | 'Confirmé' | 'Terminé' | 'Annulé';
   notes?: string;
   createdAt: string;
-}
-
-export interface Message {
-  id: string;
-  senderId: string;
-  receiverId: string;
-  subject: string;
-  content: string;
-  read: boolean;
-  createdAt: string;
-  propertyId?: string;
+  updatedAt: string;
 }

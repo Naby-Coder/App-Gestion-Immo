@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Heart, MessageSquare, FileText, 
   Calendar, User, LogOut, X 
 } from 'lucide-react';
-import { useAuth } from '../auth/AuthProvider';
+import { useSupabaseAuth } from '../auth/SupabaseAuthProvider';
 
 interface ClientSidebarProps {
   isOpen: boolean;
@@ -12,7 +12,7 @@ interface ClientSidebarProps {
 
 const ClientSidebar = ({ isOpen, toggleSidebar }: ClientSidebarProps) => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut } = useSupabaseAuth();
   
   const isActive = (path: string) => {
     return location.pathname === path 

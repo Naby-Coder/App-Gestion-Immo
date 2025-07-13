@@ -2,13 +2,13 @@ import {
   Building, Users, MessageSquare, CreditCard, TrendingUp, 
   Percent, Activity, Calendar, Shield, UserCheck
 } from 'lucide-react';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 import { properties } from '../../data/properties';
 import { contactRequests } from '../../data/requests';
 import { formatPrice } from '../../utils/formatters';
 
 const AdminDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile } = useSupabaseAuth();
   
   // Calculs des statistiques
   const totalProperties = properties.length;

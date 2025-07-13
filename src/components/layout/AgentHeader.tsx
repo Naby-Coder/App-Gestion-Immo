@@ -1,14 +1,14 @@
 import { Menu, Bell, User, ChevronDown, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../auth/AuthProvider';
+import { useSupabaseAuth } from '../auth/SupabaseAuthProvider';
 
 interface AgentHeaderProps {
   toggleSidebar: () => void;
 }
 
 const AgentHeader = ({ toggleSidebar }: AgentHeaderProps) => {
-  const { profile } = useAuth();
+  const { profile } = useSupabaseAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);

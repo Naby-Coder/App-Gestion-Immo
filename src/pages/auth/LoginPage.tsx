@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Building } from 'lucide-react';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 
 const LoginPage = () => {
-  const { signIn, loading: authLoading, user, profile } = useAuth();
+  const { signIn, loading: authLoading, user, profile } = useSupabaseAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { FileText, Eye, MessageSquare, Calendar, CheckCircle, X, Edit } from 'lucide-react';
 import { mockStorage } from '../../lib/mockData';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 import { properties } from '../../data/properties';
 import { formatDate } from '../../utils/formatters';
 
 const ClientRequests = () => {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);

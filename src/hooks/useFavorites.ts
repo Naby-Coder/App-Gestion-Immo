@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../components/auth/SupabaseAuthProvider';
 import { mockStorage } from '../lib/mockData';
 
-export interface Favorite {
-  id: string;
-  userId: string;
-  propertyId: string;
-  createdAt: string;
-}
+import type { Favorite } from '../types';
 
 export function useFavorites() {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -2,12 +2,12 @@ import {
   Building, Users, MessageSquare, CreditCard, TrendingUp, 
   Calendar, Activity, Target, Award, Clock
 } from 'lucide-react';
-import { useAuth } from '../../components/auth/AuthProvider';
+import { useSupabaseAuth } from '../../components/auth/SupabaseAuthProvider';
 import { formatPrice } from '../../utils/formatters';
 import { contactRequests } from '../../data/requests';
 
 const AgentDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile } = useSupabaseAuth();
   
   // Statistiques spécifiques à l'agent
   const agentStats = {
