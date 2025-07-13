@@ -94,25 +94,6 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
-        )}
-          <div className="flex justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Biens Total</p>
-              <p className="text-2xl font-bold">{totalProperties}</p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-primary-100 flex items-center justify-center">
-              <Building className="h-6 w-6 text-primary-600" />
-            </div>
-          </div>
-          <div className="mt-4 flex justify-between items-center">
-            <div className="flex items-center">
-              <span className="text-xs font-medium text-gray-500">Vente: {propertiesForSale}</span>
-              <span className="mx-2 text-gray-300">|</span>
-              <span className="text-xs font-medium text-gray-500">Location: {propertiesForRent}</span>
-            </div>
-          </div>
-        </div>
-        
         {profile?.role === 'admin' && (
           <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between">
