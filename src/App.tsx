@@ -63,7 +63,7 @@ function App() {
 
         {/* Routes admin/agent protégées */}
         <Route path="admin" element={
-          <ProtectedRoute requiredRole="admin">
+          <ProtectedRoute requiredRole="admin" redirectTo="/agent">
             <AdminLayout />
           </ProtectedRoute>
         }>
@@ -75,6 +75,21 @@ function App() {
           <Route path="contrats" element={<AdminContracts />} />
           <Route path="paiements" element={<AdminPayments />} />
           <Route path="parametres" element={<AdminSettings />} />
+          <Route path="profil" element={<AdminProfile />} />
+        </Route>
+        
+        {/* Routes agent protégées */}
+        <Route path="agent" element={
+          <ProtectedRoute requiredRole="agent" redirectTo="/admin">
+            <AgentLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<AgentDashboard />} />
+          <Route path="biens" element={<AdminProperties />} />
+          <Route path="clients" element={<AdminClients />} />
+          <Route path="demandes" element={<AdminRequests />} />
+          <Route path="contrats" element={<AdminContracts />} />
+          <Route path="paiements" element={<AdminPayments />} />
           <Route path="profil" element={<AdminProfile />} />
         </Route>
 
