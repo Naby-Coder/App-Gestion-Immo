@@ -2,6 +2,16 @@ import { Agent } from '../types';
 
 export const agents: Agent[] = [
   {
+    id: '1',
+    firstName: 'Mouhamed',
+    lastName: 'Ndione',
+    email: 'mouhamed.ndione@immoexpert.sn',
+    phone: '+221 77 123 45 67',
+    bio: "Fort de 10 ans d'expérience dans l'immobilier de luxe à Dakar, Mouhamed a développé une expertise particulière dans les biens d'exception. Attentif et professionnel, il saura vous accompagner dans votre projet immobilier avec passion et discrétion.",
+    avatar: '/popup-scaled-1-195x300.jpg',
+    position: 'Directeur des ventes'
+  },
+  {
     id: '2',
     firstName: 'Fadel',
     lastName: 'Fall',
