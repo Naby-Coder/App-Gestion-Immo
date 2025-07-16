@@ -6,7 +6,8 @@ interface AddPaymentModalProps {
   onClose: () => void;
   onAdd: (payment: any) => void;
 }
-
+/*Les clients pourront payer en ligne ou sur place par cheque, espece, carte 
+*/
 const AddPaymentModal = ({ isOpen, onClose, onAdd }: AddPaymentModalProps) => {
   const [formData, setFormData] = useState({
     type: 'Commission',
