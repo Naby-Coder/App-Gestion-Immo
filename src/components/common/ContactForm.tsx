@@ -14,7 +14,7 @@ interface FormData {
   phone: string;
   message: string;
 }
-
+/*Form de contact*/
 const ContactForm = ({ propertyId, propertyTitle }: ContactFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
