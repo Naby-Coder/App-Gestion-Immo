@@ -6,6 +6,7 @@ interface AddPropertyModalProps {
   onClose: () => void;
   onAdd: (property: any) => void;
 }
+/*Ajouter propriete*/
 
 const AddPropertyModal = ({ isOpen, onClose, onAdd }: AddPropertyModalProps) => {
   const [formData, setFormData] = useState({
