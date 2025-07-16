@@ -17,7 +17,7 @@ Une application moderne de gestion immobilière développée avec React, TypeScr
 - **Authentification intégrée** avec gestion des rôles
 - **Base de données PostgreSQL** hébergée
 
-## 🚀 Fonctionnalités
+## 🚀 Fonctionnalités 
 
 ### Authentification & Autorisation
 - ✅ Inscription/Connexion sécurisée
