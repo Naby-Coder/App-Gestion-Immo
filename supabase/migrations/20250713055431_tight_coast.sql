@@ -82,7 +82,7 @@ CREATE POLICY "Les utilisateurs peuvent modifier leur propre profil"
     USING (id = auth.uid())
     WITH CHECK (id = auth.uid());
 
-CREATE POLICY "Les admins peuvent gérer tous les profils"
+CREATE POLICY "Les admins peuvent gérer tous les profils" --Les admins peuvent visualiser et modifier tous les profils utilisateurs
     ON profils FOR ALL
     TO authenticated
     USING (
