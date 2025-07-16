@@ -6,7 +6,7 @@ interface AddUserModalProps {
   onClose: () => void;
   onAdd: (user: any) => void;
 }
-
+/*Creation de compte */
 const AddUserModal = ({ isOpen, onClose, onAdd }: AddUserModalProps) => {
   const [formData, setFormData] = useState({
     firstName: '',
